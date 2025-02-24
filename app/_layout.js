@@ -12,6 +12,12 @@ export default function Layout() {
         }}
       >
         <Stack.Screen
+          name="index" // Add this screen for the root route
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
           name="login"
           options={{
             title: 'Login',
