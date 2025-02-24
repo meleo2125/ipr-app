@@ -5,7 +5,9 @@ const jwt = require('jsonwebtoken');
 
 const app = express();
 app.use(express.json());
+const cors = require('cors');
 
+app.use(cors());
 // MongoDB Connection
 mongoose.connect('mongodb+srv://root:root@ipr.hanid.mongodb.net/?retryWrites=true&w=majority&appName=ipr', {
   useNewUrlParser: true,
@@ -47,7 +49,8 @@ const JWT_SECRET = 'your-secret-key'; // Change this to a secure random string i
 app.post('/api/register', async (req, res) => {
   try {
     const { name, email, password, age, gender } = req.body;
-    
+    console.log("Received registration request:", req.body);
+
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {

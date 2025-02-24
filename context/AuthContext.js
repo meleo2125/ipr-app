@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+const API_URL = 'http://localhost:5000'
 // Create the Auth Context
 const AuthContext = createContext(null);
 
@@ -33,38 +33,34 @@ export const AuthProvider = ({ children }) => {
     loadStoredData();
   }, []);
 
-  // Login function
   const login = async (email, password) => {
     try {
       setIsLoading(true);
       
-      // This would normally be an API call to your backend
-      // For demo purposes, we're using mock authentication
-      if (email === 'test@example.com' && password === 'password') {
-        // Simulate API response
-        const userData = {
-          id: '1',
-          name: 'Test User',
-          email: 'test@example.com',
-          age: 30,
-          gender: 'Male'
-        };
-        
-        // Save authentication data
-        const token = 'demo-token-12345';
-        await AsyncStorage.setItem('userToken', token);
-        await AsyncStorage.setItem('userInfo', JSON.stringify(userData));
-        
-        setUserInfo(userData);
-        setUserToken(token);
-        
-        return { success: true };
-      } else {
+      // Call the backend API
+      const response = await fetch(`${API_URL}/api/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
         return { 
           success: false, 
-          message: 'Invalid email or password' 
+          message: data.message || 'Login failed' 
         };
       }
+  
+      // Save authentication data
+      await AsyncStorage.setItem('userToken', data.token);
+      await AsyncStorage.setItem('userInfo', JSON.stringify(data.user));
+      
+      setUserInfo(data.user);
+      setUserToken(data.token);
+      
+      return { success: true };
     } catch (error) {
       console.error('Login error:', error);
       return { 
@@ -76,33 +72,35 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (userData) => {
-    try {
-      setIsLoading(true);
-  
-      // Call the backend API
-      const response = await fetch('http://10.0.2.2:5000/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
-      });
-  
-      const data = await response.json();
-  
-      setIsLoading(false);
-  
-      if (!response.ok) {
-        return { success: false, message: data.message || "Registration failed" };
-      }
-  
-      return { success: true, message: "User registered successfully" };
-    } catch (error) {
-      setIsLoading(false);
-      console.error("Registration error:", error);
-      return { success: false, message: "An error occurred during registration" };
+const register = async (userData) => {
+  try {
+    setIsLoading(true);
+
+    console.log("Sending registration data:", userData); // Debugging log
+
+    const response = await fetch(`${API_URL}/api/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    });
+
+    const data = await response.json();
+    console.log("Response from backend:", data); // Debugging log
+
+    setIsLoading(false);
+
+    if (!response.ok) {
+      return { success: false, message: data.message || "Registration failed" };
     }
-  };
-  
+
+    return { success: true, message: "User registered successfully" };
+  } catch (error) {
+    setIsLoading(false);
+    console.error("Registration error:", error);
+    return { success: false, message: "An error occurred during registration" };
+  }
+};
+
   // Logout function
   const logout = async () => {
     try {
