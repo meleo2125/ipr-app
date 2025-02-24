@@ -1,114 +1,137 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 
-const AuthContext = createContext();
+// Create the Auth Context
+const AuthContext = createContext(null);
 
+// AuthProvider component
 export const AuthProvider = ({ children }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [userToken, setUserToken] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
-  
-  const API_URL = 'http://10.0.2.2:5000'; // Use this for Android emulator
-  // const API_URL = 'http://localhost:5000'; // Use this for iOS simulator
-  
-  // Function to handle login
+  const [userToken, setUserToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Check if user is logged in on app start
+  useEffect(() => {
+    // Load token and user info from storage
+    const loadStoredData = async () => {
+      try {
+        setIsLoading(true);
+        const storedToken = await AsyncStorage.getItem('userToken');
+        const storedUserInfo = await AsyncStorage.getItem('userInfo');
+        
+        if (storedToken && storedUserInfo) {
+          setUserToken(storedToken);
+          setUserInfo(JSON.parse(storedUserInfo));
+        }
+      } catch (error) {
+        console.error('Error loading stored auth data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadStoredData();
+  }, []);
+
+  // Login function
   const login = async (email, password) => {
     try {
       setIsLoading(true);
-      const response = await axios.post(`${API_URL}/api/login`, {
-        email,
-        password,
-      });
       
-      const { token, user } = response.data;
-      
-      setUserToken(token);
-      setUserInfo(user);
-      
-      // Store token and user info
-      await AsyncStorage.setItem('userToken', token);
-      await AsyncStorage.setItem('userInfo', JSON.stringify(user));
-      
-      setIsLoading(false);
-      return { success: true };
+      // This would normally be an API call to your backend
+      // For demo purposes, we're using mock authentication
+      if (email === 'test@example.com' && password === 'password') {
+        // Simulate API response
+        const userData = {
+          id: '1',
+          name: 'Test User',
+          email: 'test@example.com',
+          age: 30,
+          gender: 'Male'
+        };
+        
+        // Save authentication data
+        const token = 'demo-token-12345';
+        await AsyncStorage.setItem('userToken', token);
+        await AsyncStorage.setItem('userInfo', JSON.stringify(userData));
+        
+        setUserInfo(userData);
+        setUserToken(token);
+        
+        return { success: true };
+      } else {
+        return { 
+          success: false, 
+          message: 'Invalid email or password' 
+        };
+      }
     } catch (error) {
-      setIsLoading(false);
-      console.error('Login error:', error.response?.data || error.message);
+      console.error('Login error:', error);
       return { 
         success: false, 
-        message: error.response?.data?.message || 'Login failed'
+        message: 'An error occurred during login' 
       };
+    } finally {
+      setIsLoading(false);
     }
   };
-  
-  // Function to handle registration
+
   const register = async (userData) => {
     try {
       setIsLoading(true);
-      const response = await axios.post(`${API_URL}/api/register`, userData);
+  
+      // Call the backend API
+      const response = await fetch('http://10.0.2.2:5000/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+  
+      const data = await response.json();
+  
       setIsLoading(false);
-      return { success: true, message: response.data.message };
+  
+      if (!response.ok) {
+        return { success: false, message: data.message || "Registration failed" };
+      }
+  
+      return { success: true, message: "User registered successfully" };
     } catch (error) {
       setIsLoading(false);
-      console.error('Registration error:', error.response?.data || error.message);
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Registration failed'
-      };
+      console.error("Registration error:", error);
+      return { success: false, message: "An error occurred during registration" };
     }
   };
   
-  // Function to handle logout
+  // Logout function
   const logout = async () => {
     try {
       setIsLoading(true);
-      setUserToken(null);
-      setUserInfo(null);
+      // Clear stored data
       await AsyncStorage.removeItem('userToken');
       await AsyncStorage.removeItem('userInfo');
-      setIsLoading(false);
+      // Reset state
+      setUserToken(null);
+      setUserInfo(null);
     } catch (error) {
       console.error('Logout error:', error);
+    } finally {
       setIsLoading(false);
     }
   };
-  
-  // Check if user is logged in on app start
-  const isLoggedIn = async () => {
-    try {
-      setIsLoading(true);
-      const storedToken = await AsyncStorage.getItem('userToken');
-      const storedUserInfo = await AsyncStorage.getItem('userInfo');
-      
-      if (storedToken && storedUserInfo) {
-        setUserToken(storedToken);
-        setUserInfo(JSON.parse(storedUserInfo));
-      }
-      
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Token restore error:', error);
-      setIsLoading(false);
-    }
+
+  // Create the context value object with all the functions and state
+  const authContextValue = {
+    isLoading,
+    userInfo,
+    userToken,
+    login,
+    logout,
+    register
   };
-  
-  // Run on component mount
-  useEffect(() => {
-    isLoggedIn();
-  }, []);
-  
+
   return (
-    <AuthContext.Provider 
-      value={{ 
-        login, 
-        register, 
-        logout, 
-        isLoading, 
-        userToken, 
-        userInfo 
-      }}
-    >
+    <AuthContext.Provider value={authContextValue}>
       {children}
     </AuthContext.Provider>
   );
@@ -116,7 +139,9 @@ export const AuthProvider = ({ children }) => {
 
 // Custom hook to use the auth context
 export const useAuth = () => {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (context === null) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
-
-export default AuthContext;
