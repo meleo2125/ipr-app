@@ -133,6 +133,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textTransform: 'uppercase',
     letterSpacing: 1,
+    fontFamily: 'Montserrat_Bold',
   },
   formContainer: {
     backgroundColor: 'white',
@@ -144,6 +145,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     width: '100%',
+    fontFamily: 'Montserrat_Regular',
   },
   label: { 
     fontSize: 16, 
@@ -164,6 +166,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
+    fontFamily: 'Montserrat_Regular',
   },
   picker: { 
     height: 50, 
@@ -173,6 +176,7 @@ const styles = StyleSheet.create({
     borderColor: '#1565c0', 
     borderWidth: 1, 
     borderRadius: 10,
+    fontFamily: 'Montserrat_Regular',
   },
   button: { 
     backgroundColor: '#ffab00', 
@@ -191,6 +195,7 @@ const styles = StyleSheet.create({
     fontSize: 16, 
     fontWeight: 'bold',
     textTransform: 'uppercase',
+    fontFamily: 'Montserrat_Bold',
   },
   responseContainer: { 
     marginTop: 20, 
@@ -210,6 +215,7 @@ const styles = StyleSheet.create({
     color: '#1565c0',
     textAlign: 'center',
     fontWeight: '500',
+    fontFamily: 'Montserrat_Regular',
   },
   rowContainer: {
     flexDirection: 'row',
