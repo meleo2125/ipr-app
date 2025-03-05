@@ -1,12 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Platform } from "react-native";
-const API_URL =
-  Platform.OS === "android"
-    ? "http://192.168.1.3:5000" // ✅ Works on mobile/emulator
-    : "http://192.168.1.3:5000"; // ✅ Works on web
-
-export { API_URL };
+import { API_URL } from "../api/config";
 
 // Create the Auth Context
 const AuthContext = createContext(null);
@@ -78,12 +72,75 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(false);
     }
   };
-
-  const register = async (userData) => {
+  // Add to AuthProvider component
+  const requestOTP = async (email) => {
     try {
       setIsLoading(true);
 
-      console.log("Sending registration data:", userData); // Debugging log
+      const response = await fetch(`${API_URL}/api/generate-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      setIsLoading(false);
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || "Failed to send OTP",
+        };
+      }
+
+      return { success: true, message: "OTP sent successfully" };
+    } catch (error) {
+      setIsLoading(false);
+      console.error("OTP request error:", error);
+      return {
+        success: false,
+        message: "An error occurred while sending OTP",
+      };
+    }
+  };
+
+  const verifyOTP = async (email, otp, userData = null) => {
+    try {
+      setIsLoading(true);
+
+      const response = await fetch(`${API_URL}/api/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp, userData }),
+      });
+
+      const data = await response.json();
+
+      setIsLoading(false);
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || "OTP verification failed",
+        };
+      }
+
+      return { success: true, message: data.message };
+    } catch (error) {
+      setIsLoading(false);
+      console.error("OTP verification error:", error);
+      return {
+        success: false,
+        message: "An error occurred during OTP verification",
+      };
+    }
+  };
+
+  // Modify the register function
+  const register = async (userData) => {
+    try {
+      setIsLoading(true);
 
       const response = await fetch(`${API_URL}/api/register`, {
         method: "POST",
@@ -92,8 +149,6 @@ export const AuthProvider = ({ children }) => {
       });
 
       const data = await response.json();
-      console.log("Response from backend:", data); // Debugging log
-
       setIsLoading(false);
 
       if (!response.ok) {
@@ -103,7 +158,10 @@ export const AuthProvider = ({ children }) => {
         };
       }
 
-      return { success: true, message: "User registered successfully" };
+      return {
+        success: true,
+        message: "OTP sent to your email for verification",
+      };
     } catch (error) {
       setIsLoading(false);
       console.error("Registration error:", error);
@@ -131,7 +189,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Create the context value object with all the functions and state
+  // Add these functions to authContextValue
   const authContextValue = {
     isLoading,
     userInfo,
@@ -139,6 +197,8 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     register,
+    requestOTP,
+    verifyOTP,
   };
 
   return (

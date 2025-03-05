@@ -9,13 +9,8 @@ import {
   ImageBackground,
 } from "react-native";
 import axios from "axios";
-import { Platform } from "react-native";
 import { useAuth } from "../../context/AuthContext";
-
-const API_URL =
-  Platform.OS === "android"
-    ? "http://192.168.1.3:5000" // ✅ Works on mobile/emulator
-    : "http://192.168.1.3:5000"; // ✅ Works on web
+import { API_URL } from "../../api/config";
 
 const LeaderboardScreen = () => {
   const { userInfo } = useAuth(); // Get logged-in user info

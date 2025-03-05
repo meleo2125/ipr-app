@@ -60,6 +60,7 @@ function ProtectedStack() {
       <Stack.Screen name="reset-password" />
       <Stack.Screen name="forgot-password" />
       <Stack.Screen name="home/tips" />
+      <Stack.Screen name="verify-otp" />
     </Stack>
   );
 }

@@ -4,18 +4,12 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { Platform } from "react-native";
-const API_URL =
-  Platform.OS === "android"
-    ? "http://192.168.1.3:5000" // ✅ Works on mobile/emulator
-    : "http://192.168.1.3:5000"; // ✅ Works on web
-
-export { API_URL };
+import CustomAlert from "../components/CustomAlert";
+import { API_URL } from "../api/config";
 
 export default function ResetPassword() {
   const params = useLocalSearchParams();
@@ -23,6 +17,8 @@ export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkingToken, setCheckingToken] = useState(true); // ✅ New state to track token check
+  const [alertMessage, setAlertMessage] = useState(""); // ✅ Alert state
+  const [showAlert, setShowAlert] = useState(false);
   const router = useRouter();
 
   // ✅ Fix: Wait until the token is extracted before deciding to redirect
@@ -40,11 +36,11 @@ export default function ResetPassword() {
 
   const handleReset = async () => {
     if (!newPassword) {
-      Alert.alert("Error", "Please enter a new password");
+      showCustomAlert("Please enter a new password");
       return;
     }
     if (!token) {
-      Alert.alert("Error", "Missing reset token");
+      showCustomAlert("Missing reset token");
       return;
     }
 
@@ -63,12 +59,12 @@ export default function ResetPassword() {
         throw new Error(data.message || "Failed to reset password");
       }
 
-      Alert.alert("Success", "Password updated successfully!", [
+      showCustomAlert("Password updated successfully!", [
         { text: "OK", onPress: () => router.replace("/login") },
       ]);
     } catch (error) {
       console.error("Reset error:", error);
-      Alert.alert("Error", error.message || "Invalid or expired token.");
+      showCustomAlert("Invalid or expired token.");
     } finally {
       setLoading(false);
     }
@@ -82,9 +78,17 @@ export default function ResetPassword() {
       </View>
     );
   }
-
+  const showCustomAlert = (message) => {
+    setAlertMessage(message);
+    setShowAlert(true);
+  };
   return (
     <View style={styles.container}>
+      <CustomAlert
+        visible={showAlert}
+        message={alertMessage}
+        onClose={() => setShowAlert(false)}
+      />
       <Text style={styles.title}>Reset Password</Text>
 
       {loading ? (
@@ -117,7 +121,10 @@ export default function ResetPassword() {
     </View>
   );
 }
-
+const showCustomAlert = (message) => {
+  setAlertMessage(message);
+  setShowAlert(true);
+};
 const styles = StyleSheet.create({
   container: {
     flex: 1,

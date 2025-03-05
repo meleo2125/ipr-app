@@ -64,36 +64,141 @@ const User = mongoose.model("User", userSchema);
 
 // JWT Secret
 const JWT_SECRET = "your-secret-key"; // Change this to a secure random string in production
+// Store OTPs temporarily (in production, use a database or Redis)
+const otpStore = {};
 
-// Register endpoint
+// Generate OTP endpoint
+app.post("/api/generate-otp", async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    // Check if user already exists and is verified
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+    
+    // Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Store OTP with expiration (15 minutes)
+    otpStore[email] = {
+      code: otp,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
+    };
+    
+    // Send OTP via email
+    const mailOptions = {
+      from: "mukeshprajapat3093@gmail.com",
+      to: email,
+      subject: "Your Email Verification OTP",
+      html: `
+        <h2>Email Verification</h2>
+        <p>Your OTP for email verification is: <strong>${otp}</strong></p>
+        <p>This code will expire in 15 minutes.</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.json({ message: "OTP sent to email", success: true });
+  } catch (error) {
+    console.error("OTP Generation Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Verify OTP endpoint
+app.post("/api/verify-otp", async (req, res) => {
+  try {
+    const { email, otp, userData } = req.body;
+    
+    // Check if OTP exists and is valid
+    if (!otpStore[email] || otpStore[email].code !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+    
+    // Check if OTP has expired
+    if (new Date() > new Date(otpStore[email].expiresAt)) {
+      delete otpStore[email]; // Clean up expired OTP
+      return res.status(400).json({ message: "OTP has expired" });
+    }
+    
+    // If we have userData, create the user account
+    if (userData) {
+      const { name, password, age, gender } = userData;
+      
+      // Hash password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      
+      // Create verified user
+      const newUser = new User({
+        name,
+        email,
+        password: hashedPassword,
+        age,
+        gender,
+        levels: [],
+      });
+      
+      await newUser.save();
+      
+      // Clean up used OTP
+      delete otpStore[email];
+      
+      return res.status(201).json({ 
+        message: "Email verified and user registered successfully",
+        success: true 
+      });
+    }
+    
+    // If we're just verifying the OTP without creating a user yet
+    res.json({ 
+      message: "OTP verified successfully", 
+      success: true 
+    });
+    
+  } catch (error) {
+    console.error("OTP Verification Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Modify the register endpoint
 app.post("/api/register", async (req, res) => {
   try {
     const { name, email, password, age, gender } = req.body;
-    console.log("Received registration request:", req.body);
-
+    
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
+    
+    // Generate OTP for email verification instead of creating the user immediately
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Store OTP with expiration (15 minutes)
+    otpStore[email] = {
+      code: otp,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+      userData: { name, email, password, age, gender } // Store user data temporarily
+    };
+    
+    // Send OTP via email
+    const mailOptions = {
+      from: "mukeshprajapat3093@gmail.com",
+      to: email,
+      subject: "Your Email Verification OTP",
+      html: `
+        <h2>Email Verification</h2>
+        <p>Your OTP for email verification is: <strong>${otp}</strong></p>
+        <p>This code will expire in 15 minutes.</p>
+      `,
+    };
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create new user
-    const newUser = new User({
-      name,
-      email,
-      password: hashedPassword,
-      age,
-      gender,
-      levels: [],
-    });
-
-    await newUser.save();
-
-    res.status(201).json({ message: "User registered successfully" });
+    await transporter.sendMail(mailOptions);
+    res.json({ message: "OTP sent to email", success: true });
   } catch (error) {
     console.error("Registration error:", error);
     res.status(500).json({ message: "Server error" });
