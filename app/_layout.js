@@ -40,7 +40,13 @@ function ProtectedStack() {
   useEffect(() => {
     // console.log("Current route segments:", segments);
 
-    const publicRoutes = ["reset-password", "forgot-password", "register", "verify-otp"];
+    const publicRoutes = [
+      "reset-password",
+      "forgot-password",
+      "register",
+      "verify-otp",
+      "_sitemap",
+    ];
     const isPublicRoute =
       segments.length > 0 && publicRoutes.includes(segments[0]);
 
@@ -54,13 +60,22 @@ function ProtectedStack() {
       <Stack.Screen name="index" />
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />
-      <Stack.Screen name="home" />
       <Stack.Screen name="profile" />
-      <Stack.Screen name="home/leaderboard" />
       <Stack.Screen name="reset-password" />
       <Stack.Screen name="forgot-password" />
-      <Stack.Screen name="home/tips" />
       <Stack.Screen name="verify-otp" />
+
+      <Stack.Screen name="home" />
+      <Stack.Screen name="home/leaderboard" />
+      <Stack.Screen name="home/tips" />
+
+      <Stack.Screen name="home/chapters" />
+      <Stack.Screen name="home/chapters/patent" />
+      <Stack.Screen name="home/chapters/design" />
+      <Stack.Screen name="home/chapters/trademark" />
+      <Stack.Screen name="home/chapters/copyrights" />
+
+      <Stack.Screen name="home/chapters/patent/level1" />
     </Stack>
   );
 }

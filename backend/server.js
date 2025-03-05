@@ -110,9 +110,10 @@ app.post("/api/generate-otp", async (req, res) => {
 app.post("/api/verify-otp", async (req, res) => {
   try {
     const { email, otp, userData: rawUserData } = req.body;
-    
+
     // Ensure userData is properly parsed
-    const userData = typeof rawUserData === "string" ? JSON.parse(rawUserData) : rawUserData;
+    const userData =
+      typeof rawUserData === "string" ? JSON.parse(rawUserData) : rawUserData;
 
     // Validate userData
     if (!userData || !userData.password) {
@@ -153,7 +154,6 @@ app.post("/api/verify-otp", async (req, res) => {
       message: "Email verified and user registered successfully",
       success: true,
     });
-
   } catch (error) {
     console.error("OTP Verification Error:", error);
     res.status(500).json({ message: "Server error" });
@@ -350,6 +350,51 @@ app.post("/api/update-password", async (req, res) => {
   } catch (error) {
     console.error("Update Password Error:", error);
     res.status(500).json({ message: "Invalid or expired token" });
+  }
+});
+
+app.post("/api/save-level", async (req, res) => {
+  try {
+    const { email, chapter, levelNumber, score, timeTaken } = req.body;
+
+    // Find the user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if this level already exists for the user
+    const existingLevelIndex = user.levels.findIndex(
+      (level) => level.chapter === chapter && level.levelNumber === levelNumber
+    );
+
+    if (existingLevelIndex !== -1) {
+      // Update existing level if new score is higher
+      if (user.levels[existingLevelIndex].score < score) {
+        user.levels[existingLevelIndex].score = score;
+        user.levels[existingLevelIndex].timeTaken = timeTaken;
+        user.levels[existingLevelIndex].completedAt = Date.now();
+      }
+    } else {
+      // Add new level
+      user.levels.push({
+        chapter,
+        levelNumber,
+        score,
+        timeTaken,
+        completedAt: Date.now(),
+      });
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Level data saved successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.error("Error saving level data:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
