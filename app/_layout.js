@@ -40,7 +40,7 @@ function ProtectedStack() {
   useEffect(() => {
     // console.log("Current route segments:", segments);
 
-    const publicRoutes = ["reset-password", "forgot-password", "register"];
+    const publicRoutes = ["reset-password", "forgot-password", "register", "verify-otp"];
     const isPublicRoute =
       segments.length > 0 && publicRoutes.includes(segments[0]);
 

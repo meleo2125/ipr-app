@@ -141,19 +141,13 @@ export default function Register() {
       setIsLoading(false);
 
       if (result.success) {
-        // Store user data as JSON to pass to the OTP screen
-        const userData = JSON.stringify({
-          name,
-          email,
-          password,
-          age: ageNum,
-          gender,
-        });
-
-        // Navigate to OTP verification screen
+        // Navigate to OTP verification screen with email and userData
         router.push({
           pathname: "/verify-otp",
-          params: { email, userData },
+          params: {
+            email: result.email,
+            userData: JSON.stringify(result.userData),
+          },
         });
       } else {
         // Handle specific error messages

@@ -71,22 +71,22 @@ const otpStore = {};
 app.post("/api/generate-otp", async (req, res) => {
   try {
     const { email } = req.body;
-    
+
     // Check if user already exists and is verified
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "Email already exists" });
     }
-    
+
     // Generate a 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     // Store OTP with expiration (15 minutes)
     otpStore[email] = {
       code: otp,
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
     };
-    
+
     // Send OTP via email
     const mailOptions = {
       from: "mukeshprajapat3093@gmail.com",
@@ -107,57 +107,53 @@ app.post("/api/generate-otp", async (req, res) => {
   }
 });
 
-// Verify OTP endpoint
 app.post("/api/verify-otp", async (req, res) => {
   try {
-    const { email, otp, userData } = req.body;
+    const { email, otp, userData: rawUserData } = req.body;
     
-    // Check if OTP exists and is valid
+    // Ensure userData is properly parsed
+    const userData = typeof rawUserData === "string" ? JSON.parse(rawUserData) : rawUserData;
+
+    // Validate userData
+    if (!userData || !userData.password) {
+      return res.status(400).json({ message: "Invalid user data received" });
+    }
+
+    // Check OTP validity
     if (!otpStore[email] || otpStore[email].code !== otp) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
-    
-    // Check if OTP has expired
+
     if (new Date() > new Date(otpStore[email].expiresAt)) {
-      delete otpStore[email]; // Clean up expired OTP
+      delete otpStore[email];
       return res.status(400).json({ message: "OTP has expired" });
     }
-    
-    // If we have userData, create the user account
-    if (userData) {
-      const { name, password, age, gender } = userData;
-      
-      // Hash password
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-      
-      // Create verified user
-      const newUser = new User({
-        name,
-        email,
-        password: hashedPassword,
-        age,
-        gender,
-        levels: [],
-      });
-      
-      await newUser.save();
-      
-      // Clean up used OTP
-      delete otpStore[email];
-      
-      return res.status(201).json({ 
-        message: "Email verified and user registered successfully",
-        success: true 
-      });
-    }
-    
-    // If we're just verifying the OTP without creating a user yet
-    res.json({ 
-      message: "OTP verified successfully", 
-      success: true 
+
+    // Extract user details
+    const { name, password, age, gender } = userData;
+
+    // Hash the password before saving
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create a new user
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      age,
+      gender,
+      levels: [],
     });
-    
+
+    await newUser.save();
+    delete otpStore[email]; // Clean up used OTP
+
+    res.status(201).json({
+      message: "Email verified and user registered successfully",
+      success: true,
+    });
+
   } catch (error) {
     console.error("OTP Verification Error:", error);
     res.status(500).json({ message: "Server error" });
@@ -168,23 +164,23 @@ app.post("/api/verify-otp", async (req, res) => {
 app.post("/api/register", async (req, res) => {
   try {
     const { name, email, password, age, gender } = req.body;
-    
+
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
-    
+
     // Generate OTP for email verification instead of creating the user immediately
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     // Store OTP with expiration (15 minutes)
     otpStore[email] = {
       code: otp,
       expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
-      userData: { name, email, password, age, gender } // Store user data temporarily
+      userData: { name, email, password, age, gender }, // Store user data temporarily
     };
-    
+
     // Send OTP via email
     const mailOptions = {
       from: "mukeshprajapat3093@gmail.com",

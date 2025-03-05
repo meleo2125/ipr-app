@@ -137,7 +137,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Modify the register function
   const register = async (userData) => {
     try {
       setIsLoading(true);
@@ -158,9 +157,12 @@ export const AuthProvider = ({ children }) => {
         };
       }
 
+      // Explicitly return the email to help with navigation
       return {
         success: true,
         message: "OTP sent to your email for verification",
+        email: userData.email,
+        userData: JSON.stringify(userData),
       };
     } catch (error) {
       setIsLoading(false);
@@ -171,7 +173,6 @@ export const AuthProvider = ({ children }) => {
       };
     }
   };
-
   // Logout function
   const logout = async () => {
     try {
