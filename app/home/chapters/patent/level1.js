@@ -39,7 +39,7 @@ const Level1Screen = () => {
         Animated.sequence([
           Animated.timing(narratorYPosition, {
             toValue: 5, // Reduced movement amplitude
-            duration: 2000,
+            duration: 500,
             useNativeDriver: true,
           }),
           Animated.timing(narratorYPosition, {

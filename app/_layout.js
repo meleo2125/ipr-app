@@ -76,6 +76,7 @@ function ProtectedStack() {
       <Stack.Screen name="home/chapters/copyrights" />
 
       <Stack.Screen name="home/chapters/patent/level1" />
+      <Stack.Screen name="home/chapters/patent/level2" />
     </Stack>
   );
 }
