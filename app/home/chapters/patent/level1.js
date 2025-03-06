@@ -28,7 +28,28 @@ const Level1Screen = () => {
   const [timeTaken, setTimeTaken] = useState(0);
   const [showEndScreen, setShowEndScreen] = useState(false);
   const { userInfo } = useAuth();
+  const [screenDimensions, setScreenDimensions] = useState(Dimensions.get("window"));
+  
+  // Handle screen dimension changes
+  useEffect(() => {
+    const dimensionsHandler = ({ window }) => {
+      setScreenDimensions(window);
+    };
 
+    Dimensions.addEventListener("change", dimensionsHandler);
+    return () => {
+      // Clean up event listener properly based on Expo SDK version
+      const dimensionsObject = Dimensions;
+      if (dimensionsObject.removeEventListener) {
+        dimensionsObject.removeEventListener("change", dimensionsHandler);
+      }
+    };
+  }, []);
+  
+  // Calculate responsive sizes based on screen dimensions
+  const { width, height } = screenDimensions;
+  const isSmallScreen = width < 600;
+  
   // Narrator continuous animation
   const narratorYPosition = useRef(new Animated.Value(0)).current;
 
@@ -179,6 +200,21 @@ const Level1Screen = () => {
     setShowEndScreen(false);
   };
 
+  // Compute dynamic sizes based on screen dimensions
+  const narratorWidth = isSmallScreen ? width * 0.3 : width * 0.35;
+  const narratorHeight = isSmallScreen ? height * 0.45 : height * 0.55;
+  const dialogueFontSize = isSmallScreen ? width * 0.018 : width * 0.022;
+  const dialogueLineHeight = isSmallScreen ? width * 0.025 : width * 0.03;
+  const buttonFontSize = isSmallScreen ? width * 0.015 : width * 0.018;
+  const titleFontSize = isSmallScreen ? width * 0.022 : width * 0.028;
+  const subtitleFontSize = isSmallScreen ? width * 0.013 : width * 0.016;
+  const gameItemFontSize = isSmallScreen ? width * 0.018 : width * 0.022;
+  const counterFontSize = isSmallScreen ? width * 0.012 : width * 0.014;
+  const swipeButtonFontSize = isSmallScreen ? width * 0.015 : width * 0.018;
+  const scoreFontSize = isSmallScreen ? width * 0.013 : width * 0.016;
+  const containerWidth = isSmallScreen ? "80%" : "75%";
+  const dialogueWidth = isSmallScreen ? "90%" : "85%";
+
   return (
     <ImageBackground
       source={require("../../../../assets/images/levelbg.jpg")}
@@ -197,37 +233,45 @@ const Level1Screen = () => {
         ) : isGameActive ? (
           /* Game Screen */
           <View style={styles.gameContainer}>
-            <Text style={styles.title}>What is Patentable?</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { fontSize: titleFontSize }]}>
+              What is Patentable?
+            </Text>
+            <Text style={[styles.subtitle, { fontSize: subtitleFontSize }]}>
               Swipe right for patentable, left for not patentable
             </Text>
 
-            <View style={styles.itemContainer}>
-              <Text style={styles.gameItemText}>
+            <View style={[styles.itemContainer, { width: containerWidth }]}>
+              <Text style={[styles.gameItemText, { fontSize: gameItemFontSize }]}>
                 {gameItems[currentItem].item}
               </Text>
-              <Text style={styles.counter}>
+              <Text style={[styles.counter, { fontSize: counterFontSize }]}>
                 {currentItem + 1}/{gameItems.length}
               </Text>
             </View>
 
-            <View style={styles.swipeContainer}>
+            <View style={[styles.swipeContainer, { width: containerWidth }]}>
               <TouchableOpacity
                 style={[styles.swipeButton, styles.swipeLeft]}
                 onPress={() => handleSwipe(false)}
               >
-                <Text style={styles.swipeButtonText}>Not Patentable</Text>
+                <Text style={[styles.swipeButtonText, { fontSize: swipeButtonFontSize }]}>
+                  Not Patentable
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.swipeButton, styles.swipeRight]}
                 onPress={() => handleSwipe(true)}
               >
-                <Text style={styles.swipeButtonText}>Patentable</Text>
+                <Text style={[styles.swipeButtonText, { fontSize: swipeButtonFontSize }]}>
+                  Patentable
+                </Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.scoreDisplay}>
-              <Text style={styles.currentScore}>Score: {score}</Text>
+              <Text style={[styles.currentScore, { fontSize: scoreFontSize }]}>
+                Score: {score}
+              </Text>
             </View>
           </View>
         ) : (
@@ -237,19 +281,40 @@ const Level1Screen = () => {
               source={require("../../../../assets/images/nari.png")}
               style={[
                 styles.narratorImage,
-                { transform: [{ translateY: narratorYPosition }] },
+                { 
+                  transform: [{ translateY: narratorYPosition }],
+                  width: narratorWidth,
+                  height: narratorHeight
+                },
               ]}
             />
             <View style={styles.dialogueWrapper}>
               <Animated.View
-                style={[styles.dialogueBox, { opacity: fadeAnim }]}
+                style={[
+                  styles.dialogueBox, 
+                  { 
+                    opacity: fadeAnim,
+                    width: dialogueWidth
+                  }
+                ]}
               >
-                <Text style={styles.dialogueText}>{dialogues[step]}</Text>
+                <Text style={[
+                  styles.dialogueText,
+                  { 
+                    fontSize: dialogueFontSize,
+                    lineHeight: dialogueLineHeight
+                  }
+                ]}>
+                  {dialogues[step]}
+                </Text>
                 <TouchableOpacity
                   style={styles.nextButton}
                   onPress={handleNextDialogue}
                 >
-                  <Text style={styles.nextButtonText}>
+                  <Text style={[
+                    styles.nextButtonText,
+                    { fontSize: buttonFontSize }
+                  ]}>
                     {step < dialogues.length - 1 ? "Next" : "Start Game"}
                   </Text>
                 </TouchableOpacity>
@@ -272,20 +337,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: windowWidth * 0.02, // Reduced from 0.05
+    padding: windowWidth * 0.02,
   },
   dialogueContainer: {
     flex: 1,
     width: "100%",
-    flexDirection: "row", // Changed to row to position elements side by side
+    flexDirection: "row",
     justifyContent: "flex-start",
     alignItems: "flex-end",
     paddingBottom: windowHeight * 0.05,
   },
   
   narratorImage: {
-    width: windowWidth * 0.350,
-    height: windowHeight * 0.55,
     resizeMode: "contain",
     marginLeft: windowWidth * 0.05,
     left: windowWidth * 0.001,
@@ -294,7 +357,7 @@ const styles = StyleSheet.create({
   dialogueWrapper: {
     flex: 1,
     alignItems: "flex-start",
-    marginLeft: -windowWidth * 0.05, // Negative margin to overlap with narrator
+    marginLeft: -windowWidth * 0.05,
   },
   
   dialogueBox: {
@@ -302,7 +365,6 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: windowWidth * 0.04,
     alignItems: "center",
-    width: "85%",
     marginBottom: windowHeight * 0.10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
@@ -311,24 +373,21 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   dialogueText: {
-    fontSize: windowWidth * 0.022, // Reduced from 0.045
     color: "#2c3e50",
     textAlign: "center",
-    marginBottom: windowHeight * 0.015, // Reduced from 0.02
-    lineHeight: windowWidth * 0.03, // Reduced from 0.06
+    marginBottom: windowHeight * 0.015,
     fontFamily: "Montserrat_Regular",
   },
   nextButton: {
     backgroundColor: "#3498db",
-    paddingVertical: windowHeight * 0.01, // Reduced from 0.015
-    paddingHorizontal: windowWidth * 0.03, // Reduced from 0.06
+    paddingVertical: windowHeight * 0.01,
+    paddingHorizontal: windowWidth * 0.03,
     borderRadius: 25,
     alignItems: "center",
     elevation: 8,
   },
   nextButtonText: {
     color: "#fff",
-    fontSize: windowWidth * 0.018, // Reduced from 0.04
     fontWeight: "bold",
     fontFamily: "Montserrat_Bold",
   },
@@ -339,27 +398,24 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   title: {
-    fontSize: windowWidth * 0.028, // Reduced from 0.07
     fontWeight: "bold",
     color: "#ffffff",
-    marginBottom: windowHeight * 0.01, // Reduced from 0.015
+    marginBottom: windowHeight * 0.01,
     textAlign: "center",
     fontFamily: "Montserrat_Bold",
   },
   subtitle: {
-    fontSize: windowWidth * 0.016, // Reduced from 0.04
     color: "#7f8c8d",
-    marginBottom: windowHeight * 0.02, // Reduced from 0.04
+    marginBottom: windowHeight * 0.02,
     textAlign: "center",
     fontFamily: "Montserrat_Regular",
   },
   itemContainer: {
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 15,
-    padding: windowWidth * 0.025, // Reduced from 0.05
-    width: "75%", // Reduced from 90%
+    padding: windowWidth * 0.025,
     alignItems: "center",
-    marginBottom: windowHeight * 0.025, // Reduced from 0.04
+    marginBottom: windowHeight * 0.025,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
@@ -367,27 +423,24 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   gameItemText: {
-    fontSize: windowWidth * 0.022, // Reduced from 0.055
     color: "#2c3e50",
     textAlign: "center",
-    marginBottom: windowHeight * 0.01, // Reduced from 0.02
+    marginBottom: windowHeight * 0.01,
     fontWeight: "bold",
     fontFamily: "Montserrat_Bold",
   },
   counter: {
-    fontSize: windowWidth * 0.014, // Reduced from 0.035
     color: "#7f8c8d",
     fontFamily: "Montserrat_Regular",
   },
   swipeContainer: {
-    width: "75%", // Reduced from 90%
     justifyContent: "space-between",
-    marginBottom: windowHeight * 0.025, // Reduced from 0.04
+    marginBottom: windowHeight * 0.025,
   },
   swipeButton: {
-    paddingVertical: windowHeight * 0.01, // Reduced from 0.02
-    paddingHorizontal: windowWidth * 0.025, // Reduced from 0.05
-    marginVertical: windowHeight * 0.008, // Reduced from 0.015
+    paddingVertical: windowHeight * 0.01,
+    paddingHorizontal: windowWidth * 0.025,
+    marginVertical: windowHeight * 0.008,
     borderRadius: 25,
     alignItems: "center",
     width: "100%",
@@ -405,22 +458,20 @@ const styles = StyleSheet.create({
   },
   swipeButtonText: {
     color: "#fff",
-    fontSize: windowWidth * 0.018, // Reduced from 0.045
     fontWeight: "bold",
     fontFamily: "Montserrat_Bold",
   },
   scoreDisplay: {
     position: "absolute",
-    top: windowHeight * 0.01, // Reduced from 0.025
-    right: windowWidth * 0.02, // Reduced from 0.05
+    top: windowHeight * 0.01,
+    right: windowWidth * 0.02,
     backgroundColor: "rgba(52, 152, 219, 0.8)",
-    paddingVertical: windowHeight * 0.005, // Reduced from 0.01
-    paddingHorizontal: windowWidth * 0.02, // Reduced from 0.04
+    paddingVertical: windowHeight * 0.005,
+    paddingHorizontal: windowWidth * 0.02,
     borderRadius: 20,
   },
   currentScore: {
     color: "#fff",
-    fontSize: windowWidth * 0.016, // Reduced from 0.04
     fontWeight: "bold",
     fontFamily: "Montserrat_Bold",
   },

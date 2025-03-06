@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   ImageBackground,
   Image,
   Dimensions,
+  StatusBar,
+  SafeAreaView,
 } from "react-native";
 import { useRouter, useSegments } from "expo-router";
 import * as ScreenOrientation from "expo-screen-orientation";
@@ -14,8 +16,25 @@ import { useAuth } from "../../context/AuthContext";
 
 export default function Home() {
   const router = useRouter();
-  const segments = useSegments(); // Ensure routing is ready
+  const segments = useSegments();
   const { userToken } = useAuth();
+  const [screenDimensions, setScreenDimensions] = useState(Dimensions.get("window"));
+
+  // Handle screen dimension changes
+  useEffect(() => {
+    const dimensionsHandler = ({ window }) => {
+      setScreenDimensions(window);
+    };
+
+    Dimensions.addEventListener("change", dimensionsHandler);
+    return () => {
+      // Clean up event listener properly based on Expo SDK version
+      const dimensionsObject = Dimensions;
+      if (dimensionsObject.removeEventListener) {
+        dimensionsObject.removeEventListener("change", dimensionsHandler);
+      }
+    };
+  }, []);
 
   // Set screen orientation to landscape
   useEffect(() => {
@@ -41,63 +60,122 @@ export default function Home() {
     return null; // Prevent rendering while checking authentication
   }
 
+  // Calculate responsive sizes based on screen dimensions
+  const { width, height } = screenDimensions;
+  const isSmallScreen = width < 600;
+  
+  // Calculate sizes proportionally to screen dimensions
+  const logoSize = isSmallScreen ? width * 0.2 : width * 0.15;
+  const buttonWidth = isSmallScreen ? width * 0.3 : width * 0.25;
+  const profileIconSize = isSmallScreen ? width * 0.08 : width * 0.06;
+  const buttonFontSize = isSmallScreen ? width * 0.025 : width * 0.02;
+  const buttonPaddingVertical = height * 0.03;
+
   return (
-    <ImageBackground
-      source={require("../../assets/images/bg.png")}
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <View style={styles.container}>
-        {/* Profile Button (Top Right) */}
-        <TouchableOpacity
-          style={styles.profileButton}
-          onPress={() => router.push("/profile")}
-        >
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar hidden />
+      <ImageBackground
+        source={require("../../assets/images/bg.png")}
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <View style={styles.container}>
+          {/* Profile Button (Top Right) */}
+          <TouchableOpacity
+            style={[
+              styles.profileButton,
+              {
+                top: height * 0.05,
+                right: width * 0.03,
+                width: profileIconSize,
+                height: profileIconSize,
+                borderRadius: profileIconSize / 2,
+              },
+            ]}
+            onPress={() => router.push("/profile")}
+          >
+            <Image
+              source={require("../../assets/images/profile-icon.png")}
+              style={{ width: profileIconSize, height: profileIconSize }}
+            />
+          </TouchableOpacity>
+
+          {/* Logo */}
           <Image
-            source={require("../../assets/images/profile-icon.png")}
-            style={styles.profileIcon}
+            source={require("../../assets/images/logo.png")}
+            style={[
+              styles.logo,
+              {
+                width: logoSize,
+                height: logoSize,
+                marginBottom: height * 0.06,
+              },
+            ]}
+            resizeMode="contain"
           />
-        </TouchableOpacity>
 
-        {/* Logo */}
-        <Image
-          source={require("../../assets/images/logo.png")}
-          style={styles.logo}
-        />
+          {/* Navigation Buttons */}
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                paddingVertical: buttonPaddingVertical,
+                width: buttonWidth,
+                marginBottom: height * 0.02,
+              },
+            ]}
+            onPress={() => router.push("/home/chapters")}
+          >
+            <Text style={[styles.buttonText, { fontSize: buttonFontSize }]}>
+              Chapters
+            </Text>
+          </TouchableOpacity>
 
-        {/* Navigation Buttons */}
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push("/home/chapters")}
-        >
-          <Text style={styles.buttonText}>Chapters</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                paddingVertical: buttonPaddingVertical,
+                width: buttonWidth,
+                marginBottom: height * 0.02,
+              },
+            ]}
+            onPress={() => router.push("/home/tips")}
+          >
+            <Text style={[styles.buttonText, { fontSize: buttonFontSize }]}>
+              Get Tips
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push("/home/tips")}
-        >
-          <Text style={styles.buttonText}>Get Tips</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push("/home/leaderboard")}
-        >
-          <Text style={styles.buttonText}>Leaderboard</Text>
-        </TouchableOpacity>
-      </View>
-    </ImageBackground>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                paddingVertical: buttonPaddingVertical,
+                width: buttonWidth,
+                marginBottom: height * 0.02,
+              },
+            ]}
+            onPress={() => router.push("/home/leaderboard")}
+          >
+            <Text style={[styles.buttonText, { fontSize: buttonFontSize }]}>
+              Leaderboard
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ImageBackground>
+    </SafeAreaView>
   );
 }
 
-const { width, height } = Dimensions.get("window");
-
 const styles = StyleSheet.create({
-  background: {
-    width: width,
-    height: height,
+  safeArea: {
     flex: 1,
+  },
+  background: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
   },
   container: {
     flex: 1,
@@ -106,37 +184,30 @@ const styles = StyleSheet.create({
   },
   profileButton: {
     position: "absolute",
-    top: 40,
-    right: 20,
-    width: 50,
-    height: 50,
-    borderRadius: 25,
     backgroundColor: "rgba(255, 255, 255, 0.8)",
     justifyContent: "center",
     alignItems: "center",
     elevation: 5,
-  },
-  profileIcon: {
-    width: 60,
-    height: 60,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   logo: {
-    width: 150,
-    height: 150,
-    marginBottom: 40,
+    resizeMode: "contain",
   },
   button: {
     backgroundColor: "#4a6da7",
-    paddingVertical: 15,
-    paddingHorizontal: 40,
     borderRadius: 12,
-    marginBottom: 15,
-    width: 250,
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   buttonText: {
     color: "white",
-    fontSize: 18,
     fontWeight: "bold",
     fontFamily: "Montserrat_Bold",
   },
