@@ -20,7 +20,7 @@ const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
 // Calculate base size units for consistent scaling
 const baseUnit = Math.min(windowWidth, windowHeight) / 100;
 
-const Level3Screen = () => {
+const Level2Screen = () => {
   const [step, setStep] = useState(0);
   const [isGameActive, setIsGameActive] = useState(false);
   const [currentForm, setCurrentForm] = useState(0);
@@ -79,115 +79,113 @@ const Level3Screen = () => {
     }).start();
   }, [step, isGameActive]);
 
-  // Narrator dialogues to introduce patent filing process
+  // Narrator dialogues to introduce copyright application
   const dialogues = [
-    "Now it's time to file your patent! Let me guide you through the process.",
-    "You'll need to fill out several important forms, each with a specific purpose.",
-    "Form 1 contains details about the applicant and basic information about your patent.",
-    "Form 2 includes diagrams and technical specifications of your invention.",
-    "Form 3 is a statement and undertaking under Section 8 of the Patents Act.",
-    "Form 4 provides information about inventorship and requires supporting documents.",
-    "If you're a startup or small entity, Form 28 allows for an 80% fee reduction!",
-    "Let's practice filling these forms correctly in our mini-game!",
+    "Welcome back! Now it's time to prepare your copyright application using Form XIV.",
+    "Form XIV is the official application form used in India to register your copyright under the Copyright Act, 1957.",
+    "Think of your application as your creative work's resume. It details what your work is, who made it, and when it was created.",
+    "The form has two main sections: Statement of Particulars and Statement of Further Particulars.",
+    "Statement of Particulars includes basic information like title, nature of work, and author details.",
+    "Statement of Further Particulars includes language of the work, publication status, and more specific details.",
+    "Accurate information is crucial for successful registration. Let's practice filling out the form correctly!",
+    "Ready to prepare your copyright application? Let's get started!",
   ];
 
   // Forms and their fields data
   const forms = [
     {
-      name: "Form 1: Application for Patent",
-      description: "Contains applicant details and basic patent information",
+      name: "Statement of Particulars",
+      description: "Basic information about your work and its creator",
       fields: [
         {
-          id: "applicantName",
-          label: "Applicant Name",
-          correctItem: "inventorName",
-          hint: "The person or company applying for the patent",
+          id: "title",
+          label: "Title of Work",
+          correctItem: "workTitle",
+          hint: "The official name of your creative work",
         },
         {
-          id: "inventionTitle",
-          label: "Invention Title",
-          correctItem: "patentTitle",
-          hint: "The official name of your invention",
+          id: "natureOfWork",
+          label: "Nature of Work",
+          correctItem: "workType",
+          hint: "Literary, artistic, musical, etc.",
         },
         {
-          id: "applicantAddress",
-          label: "Applicant Address",
-          correctItem: "address",
-          hint: "Legal address of the applicant",
+          id: "authorName",
+          label: "Name of Author",
+          correctItem: "creatorName",
+          hint: "Person who created the work",
         },
       ],
     },
     {
-      name: "Form 2: Provisional/Complete Specification",
-      description: "Technical details and diagrams of the invention",
+      name: "Statement of Particulars (continued)",
+      description: "Ownership and creation details",
       fields: [
         {
-          id: "technicalField",
-          label: "Technical Field",
-          correctItem: "fieldDescription",
-          hint: "Area of technology the invention belongs to",
+          id: "nationality",
+          label: "Nationality of Author",
+          correctItem: "authorCountry",
+          hint: "Country the author is a citizen of",
         },
         {
-          id: "inventionDiagram",
-          label: "Invention Diagram",
-          correctItem: "diagram",
-          hint: "Visual representation of your invention",
+          id: "address",
+          label: "Address of Author",
+          correctItem: "creatorAddress",
+          hint: "Current address of the author",
         },
         {
-          id: "workingMethod",
-          label: "Working Method",
-          correctItem: "process",
-          hint: "How the invention operates or functions",
+          id: "yearOfCreation",
+          label: "Year of Creation",
+          correctItem: "creationYear",
+          hint: "When the work was first created",
         },
       ],
     },
     {
-      name: "Form 4: Statement of Inventorship",
-      description:
-        "Details about who invented the patent and supporting documents",
+      name: "Statement of Further Particulars",
+      description: "Additional details about your work",
       fields: [
         {
-          id: "inventorDeclaration",
-          label: "Inventor Declaration",
-          correctItem: "declaration",
-          hint: "Statement confirming true inventorship",
+          id: "language",
+          label: "Language of Work",
+          correctItem: "workLanguage",
+          hint: "The language in which the work is created",
         },
         {
-          id: "employmentProof",
-          label: "Employment Proof",
-          correctItem: "employmentDocument",
-          hint: "Document showing employment relationship if applicable",
+          id: "publishStatus",
+          label: "Publication Status",
+          correctItem: "isPublished",
+          hint: "Whether the work is published or unpublished",
         },
         {
-          id: "assignmentDeed",
-          label: "Assignment Deed",
-          correctItem: "legalAssignment",
-          hint: "Document transferring ownership rights if applicable",
+          id: "publishDetails",
+          label: "Publication Details",
+          correctItem: "publishInfo",
+          hint: "Year and country of first publication (if applicable)",
         },
       ],
     },
     {
-      name: "Form 28: Small Entity Status",
-      description:
-        "For startups and small entities to get an 80% fee reduction",
+      name: "Rights Claimed",
+      description: "Specific rights you're claiming in your copyright",
       fields: [
         {
-          id: "entityCategory",
-          label: "Entity Category",
-          correctItem: "category",
-          hint: "Whether you're a startup, small entity, or individual",
+          id: "rightsClaimed",
+          label: "Rights Claimed",
+          correctItem: "claimedRights",
+          hint: "What specific rights you're seeking to protect",
         },
         {
-          id: "revenueProof",
-          label: "Revenue Proof",
-          correctItem: "financialDocument",
-          hint: "Document showing your annual revenue",
+          id: "previousRegistration",
+          label: "Previous Registration",
+          correctItem: "priorRegistry",
+          hint: "Any prior copyright registration for this work",
         },
         {
-          id: "certifications",
-          label: "Certifications",
-          correctItem: "officialCertificate",
-          hint: "Any official recognition as a startup or small entity",
+          id: "attachments",
+          label: "Required Attachments",
+          correctItem: "documents",
+          hint: "Additional documents needed for application",
         },
       ],
     },
@@ -195,37 +193,37 @@ const Level3Screen = () => {
 
   // Draggable items for the current form
   const formItems = [
-    // Form 1 items
+    // Form 1 items (Statement of Particulars)
     [
-      { id: "inventorName", label: "TechGenius Inc." },
-      { id: "patentTitle", label: "Smart Energy Converter" },
-      { id: "address", label: "123 Innovation St, Tech City" },
-      { id: "wrongItem1", label: "Patent Application Fee" },
-      { id: "wrongItem2", label: "Diagram of Invention" },
-    ],
-    // Form 2 items
-    [
-      { id: "fieldDescription", label: "Renewable Energy Technology" },
-      { id: "diagram", label: "[Technical Diagram]" },
-      { id: "process", label: "Converts kinetic energy to electricity" },
-      { id: "wrongItem1", label: "Investor Details" },
+      { id: "workTitle", label: "The Midnight Symphony" },
+      { id: "workType", label: "Musical Composition" },
+      { id: "creatorName", label: "Aditya Sharma" },
+      { id: "wrongItem1", label: "Certificate of Originality" },
       { id: "wrongItem2", label: "Marketing Strategy" },
     ],
-    // Form 4 items
+    // Form 2 items (Statement of Particulars continued)
     [
-      { id: "declaration", label: "I am the true inventor" },
-      { id: "employmentDocument", label: "Employment Contract" },
-      { id: "legalAssignment", label: "Rights Transfer Agreement" },
-      { id: "wrongItem1", label: "Patent Renewal Fee" },
-      { id: "wrongItem2", label: "User Manual" },
+      { id: "authorCountry", label: "Indian" },
+      { id: "creatorAddress", label: "123 Creative Lane, Mumbai" },
+      { id: "creationYear", label: "2023" },
+      { id: "wrongItem1", label: "Publisher Information" },
+      { id: "wrongItem2", label: "500 copies" },
     ],
-    // Form 28 items
+    // Form 3 items (Statement of Further Particulars)
     [
-      { id: "category", label: "Startup" },
-      { id: "financialDocument", label: "Annual Revenue Statement" },
-      { id: "officialCertificate", label: "Startup Recognition Certificate" },
-      { id: "wrongItem1", label: "International Patent Application" },
-      { id: "wrongItem2", label: "Product Brochure" },
+      { id: "workLanguage", label: "Hindi and English" },
+      { id: "isPublished", label: "Published" },
+      { id: "publishInfo", label: "2024, India" },
+      { id: "wrongItem1", label: "Distribution Plan" },
+      { id: "wrongItem2", label: "Advertising Budget" },
+    ],
+    // Form 4 items (Rights Claimed)
+    [
+      { id: "claimedRights", label: "All Rights Reserved" },
+      { id: "priorRegistry", label: "No Previous Registration" },
+      { id: "documents", label: "Copies of Work, ID Proof" },
+      { id: "wrongItem1", label: "International Copyright Form" },
+      { id: "wrongItem2", label: "Revenue Statement" },
     ],
   ];
 
@@ -465,8 +463,8 @@ const Level3Screen = () => {
 
       console.log("Sending level data:", {
         email: userInfo.email,
-        chapter: "patent",
-        levelNumber: 3,
+        chapter: "copyrights",
+        levelNumber: 2,
         score,
         timeTaken,
         completed: isLevelCompleted,
@@ -477,8 +475,8 @@ const Level3Screen = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: userInfo.email,
-          chapter: "patent",
-          levelNumber: 3,
+          chapter: "copyrights",
+          levelNumber: 2,
           score,
           timeTaken,
           completed: isLevelCompleted,
@@ -528,7 +526,7 @@ const Level3Screen = () => {
         ) : isGameActive ? (
           /* Game Screen */
           <View style={styles.gameContainer}>
-            <Text style={styles.title}>Complete the Forms</Text>
+            <Text style={styles.title}>Complete Form XIV</Text>
             <Text style={styles.subtitle}>
               Drag the correct information to each form field
             </Text>
@@ -539,7 +537,7 @@ const Level3Screen = () => {
                 {forms[currentForm].description}
               </Text>
               <Text style={styles.counter}>
-                Form {currentForm + 1}/{forms.length}
+                Section {currentForm + 1}/{forms.length}
               </Text>
             </View>
 
@@ -621,7 +619,7 @@ const Level3Screen = () => {
           /* Introduction with Narrator */
           <View style={styles.dialogueContainer}>
             <Animated.Image
-              source={require("../../../../assets/images/nari.png")}
+              source={require("../../../../assets/images/cory.png")}
               style={[
                 styles.narratorImage,
                 { transform: [{ translateY: narratorYPosition }] },
@@ -905,4 +903,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Level3Screen;
+export default Level2Screen;

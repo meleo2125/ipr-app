@@ -44,7 +44,8 @@ const Level2Screen = () => {
     {
       id: 1,
       title: "Smart Water Bottle",
-      description: "A water bottle that tracks hydration levels and reminds you to drink",
+      description:
+        "A water bottle that tracks hydration levels and reminds you to drink",
       patented: true,
     },
     {
@@ -62,7 +63,8 @@ const Level2Screen = () => {
     {
       id: 4,
       title: "Holographic Keyboard",
-      description: "Keyboard that projects onto any surface and detects finger movements",
+      description:
+        "Keyboard that projects onto any surface and detects finger movements",
       patented: false, // This is the unique topic without a patent
     },
   ];
@@ -140,21 +142,21 @@ const Level2Screen = () => {
   const performSearch = () => {
     setIsSearching(true);
     setAttempts(attempts + 1);
-    
+
     // Simulate a delay for the search
     setTimeout(() => {
       setIsSearching(false);
-      
+
       if (!selectedTopic.patented) {
         // Found the non-patented topic
         const endTime = Date.now();
         const totalTime = Math.floor((endTime - startTime) / 1000);
         setTimeTaken(totalTime);
-        
+
         // Calculate score based on attempts (fewer attempts = higher score)
-        const calculatedScore = Math.max(100 - ((attempts) * 20), 20);
+        const calculatedScore = Math.max(100 - attempts * 20, 20);
         setScore(calculatedScore);
-        
+
         setGamePhase("end");
         setShowEndScreen(true);
       } else {
@@ -170,17 +172,27 @@ const Level2Screen = () => {
     // Create 3-5 fake search results related to the topic
     const results = [];
     const resultCount = Math.floor(Math.random() * 3) + 3; // 3-5 results
-    
+
     for (let i = 0; i < resultCount; i++) {
       results.push({
         id: `result-${i}`,
-        title: `${topic.title} ${["System", "Method", "Apparatus", "Device", "Technology"][i % 5]}`,
+        title: `${topic.title} ${
+          ["System", "Method", "Apparatus", "Device", "Technology"][i % 5]
+        }`,
         patentNumber: `US${Math.floor(Math.random() * 10000000) + 7000000}`,
         year: 2010 + Math.floor(Math.random() * 14), // 2010-2023
-        abstract: `This patent describes a ${topic.description.toLowerCase()} that utilizes ${["advanced sensors", "innovative materials", "AI technology", "proprietary algorithms", "wireless connectivity"][i % 5]}.`,
+        abstract: `This patent describes a ${topic.description.toLowerCase()} that utilizes ${
+          [
+            "advanced sensors",
+            "innovative materials",
+            "AI technology",
+            "proprietary algorithms",
+            "wireless connectivity",
+          ][i % 5]
+        }.`,
       });
     }
-    
+
     setSearchResults(results);
   };
 
@@ -198,12 +210,16 @@ const Level2Screen = () => {
         return;
       }
 
+      // Mark level as completed regardless of score
+      const isLevelCompleted = true;
+
       console.log("Sending level data:", {
         email: userInfo.email,
         chapter: "patent",
         levelNumber: 2,
         score,
         timeTaken,
+        completed: isLevelCompleted,
       });
 
       const response = await fetch(`${API_URL}/api/save-level`, {
@@ -215,6 +231,7 @@ const Level2Screen = () => {
           levelNumber: 2,
           score,
           timeTaken,
+          completed: isLevelCompleted,
         }),
       });
 
@@ -250,7 +267,7 @@ const Level2Screen = () => {
       <Text style={styles.subtitle}>
         Choose one topic to conduct a patent search
       </Text>
-      
+
       <View style={styles.topicsGrid}>
         {patentTopics.map((topic) => (
           <TouchableOpacity
@@ -263,7 +280,7 @@ const Level2Screen = () => {
           </TouchableOpacity>
         ))}
       </View>
-      
+
       <View style={styles.attemptsDisplay}>
         <Text style={styles.attemptsText}>Attempts: {attempts}</Text>
       </View>
@@ -274,7 +291,7 @@ const Level2Screen = () => {
   const renderSearchScreen = () => (
     <View style={styles.searchContainer}>
       <Text style={styles.title}>Patent Database Search</Text>
-      
+
       <View style={styles.searchBox}>
         <TextInput
           style={styles.searchInput}
@@ -290,7 +307,7 @@ const Level2Screen = () => {
           <Text style={styles.searchButtonText}>Search</Text>
         </TouchableOpacity>
       </View>
-      
+
       {isSearching ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#3498db" />
@@ -298,10 +315,12 @@ const Level2Screen = () => {
         </View>
       ) : (
         <View style={styles.searchInstructions}>
-          <Text style={styles.instructionText}>Click "Search" to check if this invention already has a patent</Text>
+          <Text style={styles.instructionText}>
+            Click "Search" to check if this invention already has a patent
+          </Text>
         </View>
       )}
-      
+
       <TouchableOpacity
         style={styles.backButton}
         onPress={backToSelection}
@@ -316,13 +335,14 @@ const Level2Screen = () => {
   const renderSearchResults = () => (
     <View style={styles.resultsContainer}>
       <Text style={styles.title}>Search Results</Text>
-      
+
       {searchResults.length > 0 ? (
         <>
           <Text style={styles.resultMessage}>
-            We found {searchResults.length} existing patents for "{selectedTopic.title}"
+            We found {searchResults.length} existing patents for "
+            {selectedTopic.title}"
           </Text>
-          
+
           <FlatList
             data={searchResults}
             keyExtractor={(item) => item.id}
@@ -330,12 +350,14 @@ const Level2Screen = () => {
             renderItem={({ item }) => (
               <View style={styles.resultItem}>
                 <Text style={styles.resultTitle}>{item.title}</Text>
-                <Text style={styles.resultPatentNum}>Patent #{item.patentNumber} ({item.year})</Text>
+                <Text style={styles.resultPatentNum}>
+                  Patent #{item.patentNumber} ({item.year})
+                </Text>
                 <Text style={styles.resultAbstract}>{item.abstract}</Text>
               </View>
             )}
           />
-          
+
           <Text style={styles.resultConclusion}>
             This invention already has patents. Try a different idea!
           </Text>
@@ -343,11 +365,8 @@ const Level2Screen = () => {
       ) : (
         <Text style={styles.noResultsText}>No results found.</Text>
       )}
-      
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={backToSelection}
-      >
+
+      <TouchableOpacity style={styles.backButton} onPress={backToSelection}>
         <Text style={styles.backButtonText}>Choose Different Topic</Text>
       </TouchableOpacity>
     </View>

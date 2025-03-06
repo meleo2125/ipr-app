@@ -96,29 +96,69 @@ const Level1Screen = () => {
     }).start();
   }, [step, isGameActive]);
 
-  // Narrator dialogues to introduce patents
+  // Narrator dialogues to introduce copyright
   const dialogues = [
-    "Welcome to the world of patents! I'm Nari, your guide through this exciting journey.",
-    "A patent is a special right given to inventors for their new and innovative ideas.",
-    "Think of it as a shield that protects your invention so others can't use it without your permission.",
-    "In this chapter, we'll explore how to apply for a patent, and why it's important for protecting your inventions.",
-    "Patents encourage innovation by rewarding inventors for their creativity and hard work.",
-    "However, not everything can be patented. Natural discoveries, abstract ideas, and basic scientific principles aren't patentable.",
-    "Let's test your knowledge with a mini-game about what can and cannot be patented!",
+    "Welcome to the world of copyright! I'm Cory, your guide through creative rights protection.",
+    "Did you know that as soon as you create a work, it is automatically protected by copyright?",
+    "Copyright gives you exclusive rights to use, reproduce, distribute, display, and modify your creative work.",
+    "While protection is automatic, registering your copyright provides important legal benefits and proof of ownership.",
+    "Copyright protects original works like books, music, art, photographs, software, and films.",
+    "However, copyright doesn't protect ideas, facts, methods, or systems - only the original expression of those ideas.",
+    "Let's test your knowledge with a mini-game about copyright protection!",
   ];
 
   // Mini-game items
   const gameItems = [
-    { item: "A new smartphone design", patentable: true },
-    { item: "A naturally occurring plant", patentable: false },
-    { item: "A mathematical formula", patentable: false },
-    { item: "A new manufacturing process", patentable: true },
-    { item: "A genetically modified organism", patentable: true },
-    { item: "The law of gravity", patentable: false },
-    { item: "A unique software algorithm", patentable: true },
-    { item: "A new pharmaceutical drug", patentable: true },
-    { item: "A business method for online retail", patentable: true },
-    { item: "A discovered element on the periodic table", patentable: false },
+    { 
+      item: "A novel you just finished writing", 
+      answer: "Automatically Protected", 
+      isAutoProtected: true 
+    },
+    { 
+      item: "A general business idea for a delivery app", 
+      answer: "Not Protected by Copyright", 
+      isAutoProtected: false 
+    },
+    { 
+      item: "A historical fact about World War II", 
+      answer: "Not Protected by Copyright", 
+      isAutoProtected: false 
+    },
+    { 
+      item: "A song you composed and recorded", 
+      answer: "Automatically Protected", 
+      isAutoProtected: true 
+    },
+    { 
+      item: "A photograph you took of a sunset", 
+      answer: "Automatically Protected", 
+      isAutoProtected: true 
+    },
+    { 
+      item: "A cooking recipe listing ingredients", 
+      answer: "Not Protected by Copyright", 
+      isAutoProtected: false 
+    },
+    { 
+      item: "A screenplay for a film", 
+      answer: "Automatically Protected", 
+      isAutoProtected: true 
+    },
+    { 
+      item: "A specific method of teaching math", 
+      answer: "Not Protected by Copyright", 
+      isAutoProtected: false 
+    },
+    { 
+      item: "Software code you wrote for an app", 
+      answer: "Automatically Protected", 
+      isAutoProtected: true 
+    },
+    { 
+      item: "A scientific principle or discovery", 
+      answer: "Not Protected by Copyright", 
+      isAutoProtected: false 
+    },
   ];
 
   // Move to the next dialogue
@@ -131,11 +171,11 @@ const Level1Screen = () => {
     }
   };
 
-  const handleSwipe = (patentable) => {
+  const handleSwipe = (isAutoProtected) => {
     const current = gameItems[currentItem];
 
     // Check if answer is correct and add points
-    if (patentable === current.patentable) {
+    if (isAutoProtected === current.isAutoProtected) {
       setScore((prevScore) => prevScore + 10);
     }
 
@@ -164,7 +204,7 @@ const Level1Screen = () => {
   
       console.log("Sending level data:", {
         email: userInfo.email,
-        chapter: "patent",
+        chapter: "copyrights",
         levelNumber: 1,
         score,
         timeTaken,
@@ -176,7 +216,7 @@ const Level1Screen = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: userInfo.email,
-          chapter: "patent",
+          chapter: "copyrights",
           levelNumber: 1,
           score,
           timeTaken,
@@ -241,10 +281,10 @@ const Level1Screen = () => {
           /* Game Screen */
           <View style={styles.gameContainer}>
             <Text style={[styles.title, { fontSize: titleFontSize }]}>
-              What is Patentable?
+              Copyright Protection
             </Text>
             <Text style={[styles.subtitle, { fontSize: subtitleFontSize }]}>
-              Swipe right for patentable, left for not patentable
+              Select whether the item is automatically protected by copyright
             </Text>
 
             <View style={[styles.itemContainer, { width: containerWidth }]}>
@@ -269,7 +309,7 @@ const Level1Screen = () => {
                     { fontSize: swipeButtonFontSize },
                   ]}
                 >
-                  Not Patentable
+                  Not Protected
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -282,7 +322,7 @@ const Level1Screen = () => {
                     { fontSize: swipeButtonFontSize },
                   ]}
                 >
-                  Patentable
+                  Automatically Protected
                 </Text>
               </TouchableOpacity>
             </View>
@@ -297,7 +337,7 @@ const Level1Screen = () => {
           /* Introduction with Narrator */
           <View style={styles.dialogueContainer}>
             <Animated.Image
-              source={require("../../../../assets/images/nari.png")}
+              source={require("../../../../assets/images/cory.png")}
               style={[
                 styles.narratorImage,
                 {

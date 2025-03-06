@@ -325,7 +325,7 @@ const Level5Screen = () => {
       setShowEndScreen(true);
     }
   };
-  
+
   const saveLevelData = async () => {
     try {
       if (!userInfo?.email) {
@@ -333,12 +333,16 @@ const Level5Screen = () => {
         return;
       }
 
+      // Mark level as completed regardless of score
+      const isLevelCompleted = true;
+
       console.log("Sending level data:", {
         email: userInfo.email,
         chapter: "patent",
         levelNumber: 5,
         score,
         timeTaken,
+        completed: isLevelCompleted,
       });
 
       const response = await fetch(`${API_URL}/api/save-level`, {
@@ -350,6 +354,7 @@ const Level5Screen = () => {
           levelNumber: 5,
           score,
           timeTaken,
+          completed: isLevelCompleted,
         }),
       });
 

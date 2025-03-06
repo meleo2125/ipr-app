@@ -32,7 +32,7 @@ const Level4Screen = () => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const { userInfo } = useAuth();
   const timerInterval = useRef(null);
-  
+
   // Narrator continuous animation
   const narratorYPosition = useRef(new Animated.Value(0)).current;
 
@@ -110,72 +110,87 @@ const Level4Screen = () => {
   // Questions for the mini-game
   const questions = [
     {
-      question: "How long does it typically take for a patent to be published after filing?",
+      question:
+        "How long does it typically take for a patent to be published after filing?",
       options: ["6 months", "12 months", "18 months", "24 months"],
       correctAnswer: 2, // 18 months (index 2)
-      explanation: "Patents are typically published 18 months after filing."
+      explanation: "Patents are typically published 18 months after filing.",
     },
     {
-      question: "What form can you submit to request early publication of a patent?",
+      question:
+        "What form can you submit to request early publication of a patent?",
       options: ["Form 1", "Form 9", "Form 18", "Form 27"],
       correctAnswer: 1, // Form 9 (index 1)
-      explanation: "Form 9 is used to request early publication of a patent application."
+      explanation:
+        "Form 9 is used to request early publication of a patent application.",
     },
     {
       question: "How quickly can a patent be published after filing Form 9?",
-      options: ["Within 1 month", "Within 3 months", "Within 6 months", "Within 9 months"],
+      options: [
+        "Within 1 month",
+        "Within 3 months",
+        "Within 6 months",
+        "Within 9 months",
+      ],
       correctAnswer: 0, // Within 1 month (index 0)
-      explanation: "With Form 9, publication can happen within just one month."
+      explanation: "With Form 9, publication can happen within just one month.",
     },
     {
       question: "What is one advantage of early publication?",
       options: [
-        "Guaranteed patent approval", 
-        "Reduced filing fees", 
+        "Guaranteed patent approval",
+        "Reduced filing fees",
         "Earlier public disclosure",
-        "Immediate patent grant"
+        "Immediate patent grant",
       ],
       correctAnswer: 2, // Earlier public disclosure (index 2)
-      explanation: "Early publication allows your invention to enter the public domain sooner."
+      explanation:
+        "Early publication allows your invention to enter the public domain sooner.",
     },
     {
-      question: "After publication, how long does it typically take for full patent registration?",
+      question:
+        "After publication, how long does it typically take for full patent registration?",
       options: ["1-2 years", "2-3 years", "4-5 years", "7-8 years"],
       correctAnswer: 2, // 4-5 years (index 2)
-      explanation: "After publication, it takes around 4-5 years for full registration."
+      explanation:
+        "After publication, it takes around 4-5 years for full registration.",
     },
     {
       question: "What happens after a patent application is published?",
       options: [
-        "Immediate patent grant", 
-        "The application enters public domain", 
+        "Immediate patent grant",
+        "The application enters public domain",
         "The invention can no longer be modified",
-        "Competitors are legally barred from viewing it"
+        "Competitors are legally barred from viewing it",
       ],
       correctAnswer: 1, // The application enters public domain (index 1)
-      explanation: "Once published, the application enters the public domain where others can review it."
+      explanation:
+        "Once published, the application enters the public domain where others can review it.",
     },
     {
-      question: "Which of these is true about the waiting period before publication?",
+      question:
+        "Which of these is true about the waiting period before publication?",
       options: [
-        "The invention is not protected at all", 
-        "The invention remains confidential", 
+        "The invention is not protected at all",
+        "The invention remains confidential",
         "Competitors can freely use the invention",
-        "The inventor must pay monthly fees"
+        "The inventor must pay monthly fees",
       ],
       correctAnswer: 1, // The invention remains confidential (index 1)
-      explanation: "During the waiting period, your invention remains confidential."
+      explanation:
+        "During the waiting period, your invention remains confidential.",
     },
     {
       question: "What might be a reason to request early publication?",
       options: [
-        "To reduce overall patent costs", 
-        "To enable earlier enforcement against infringers", 
+        "To reduce overall patent costs",
+        "To enable earlier enforcement against infringers",
         "To extend the patent term",
-        "To bypass examination"
+        "To bypass examination",
       ],
       correctAnswer: 1, // To enable earlier enforcement against infringers (index 1)
-      explanation: "Early publication can enable earlier enforcement against potential infringers."
+      explanation:
+        "Early publication can enable earlier enforcement against potential infringers.",
     },
   ];
 
@@ -195,17 +210,18 @@ const Level4Screen = () => {
     if (selectedOption === null) {
       setSelectedOption(optionIndex);
       setTimerRunning(false);
-      
+
       // Check if answer is correct
-      const isCorrect = optionIndex === questions[currentQuestion].correctAnswer;
-      
+      const isCorrect =
+        optionIndex === questions[currentQuestion].correctAnswer;
+
       // Award points based on correctness and remaining time
       if (isCorrect) {
         // Base score of 10 plus up to 5 bonus points for speed
         const timeBonus = Math.ceil((timer / 15) * 5);
         setScore((prevScore) => prevScore + 10 + timeBonus);
       }
-      
+
       // Auto-proceed to next question after a delay
       setTimeout(() => {
         handleNextQuestion(isCorrect);
@@ -237,12 +253,16 @@ const Level4Screen = () => {
         return;
       }
 
+      // Mark level as completed regardless of score
+      const isLevelCompleted = true;
+
       console.log("Sending level data:", {
         email: userInfo.email,
         chapter: "patent",
         levelNumber: 4,
         score,
         timeTaken,
+        completed: isLevelCompleted,
       });
 
       const response = await fetch(`${API_URL}/api/save-level`, {
@@ -254,6 +274,7 @@ const Level4Screen = () => {
           levelNumber: 4,
           score,
           timeTaken,
+          completed: isLevelCompleted,
         }),
       });
 
@@ -317,14 +338,14 @@ const Level4Screen = () => {
 
             {/* Timer Bar */}
             <View style={styles.timerContainer}>
-              <View 
+              <View
                 style={[
-                  styles.timerBar, 
-                  { 
+                  styles.timerBar,
+                  {
                     width: `${timerProgress}%`,
-                    backgroundColor: getTimerColor()
-                  }
-                ]} 
+                    backgroundColor: getTimerColor(),
+                  },
+                ]}
               />
               <Text style={styles.timerText}>{timer}s</Text>
             </View>
@@ -346,28 +367,28 @@ const Level4Screen = () => {
                   key={index}
                   style={[
                     styles.optionButton,
-                    selectedOption === index && 
-                      (index === questions[currentQuestion].correctAnswer 
-                        ? styles.correctOption 
+                    selectedOption === index &&
+                      (index === questions[currentQuestion].correctAnswer
+                        ? styles.correctOption
                         : styles.incorrectOption),
-                    selectedOption !== null && 
-                      index === questions[currentQuestion].correctAnswer && 
-                      styles.correctOption
+                    selectedOption !== null &&
+                      index === questions[currentQuestion].correctAnswer &&
+                      styles.correctOption,
                   ]}
                   onPress={() => handleOptionSelect(index)}
                   disabled={selectedOption !== null}
                 >
-                  <Text 
+                  <Text
                     style={[
                       styles.optionText,
-                      (selectedOption === index && 
-                        index === questions[currentQuestion].correctAnswer) || 
-                      (selectedOption !== null && 
+                      (selectedOption === index &&
+                        index === questions[currentQuestion].correctAnswer) ||
+                      (selectedOption !== null &&
                         index === questions[currentQuestion].correctAnswer)
-                        ? styles.correctOptionText 
-                        : selectedOption === index 
-                          ? styles.incorrectOptionText 
-                          : null
+                        ? styles.correctOptionText
+                        : selectedOption === index
+                        ? styles.incorrectOptionText
+                        : null,
                     ]}
                   >
                     {option}
@@ -442,7 +463,7 @@ const styles = StyleSheet.create({
     paddingBottom: windowHeight * 0.05,
   },
   narratorImage: {
-    width: windowWidth * 0.350,
+    width: windowWidth * 0.35,
     height: windowHeight * 0.55,
     resizeMode: "contain",
     marginLeft: windowWidth * 0.05,
@@ -459,7 +480,7 @@ const styles = StyleSheet.create({
     padding: windowWidth * 0.04,
     alignItems: "center",
     width: "85%",
-    marginBottom: windowHeight * 0.10,
+    marginBottom: windowHeight * 0.1,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.5,

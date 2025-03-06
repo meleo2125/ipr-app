@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ImageBackground } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Alert } from "react-native";
 import { useRouter, usePathname } from "expo-router";
 
 // Get screen dimensions for responsive sizing
@@ -19,6 +19,20 @@ const EndScreen = ({ score, timeTaken, resetGame }) => {
   const levelNumber = parseInt(currentLevel.replace("level", ""), 10);
   const nextLevel = isNaN(levelNumber) ? null : `${levelsPath}/level${levelNumber + 1}`;
 
+  // Handle next level navigation
+  const handleNextLevel = () => {
+    // Check if next level exists (highest level is 5)
+    if (levelNumber >= 5) {
+      Alert.alert(
+        "Congratulations!",
+        "You've completed all levels in this chapter!",
+        [{ text: "OK", onPress: () => router.push(chaptersPath) }]
+      );
+    } else {
+      router.push(nextLevel);
+    }
+  };
+
   // Calculate stars based on score
   const renderStars = () => {
     if (score >= 80) return "⭐⭐⭐⭐⭐";
@@ -28,10 +42,15 @@ const EndScreen = ({ score, timeTaken, resetGame }) => {
     return "⭐";
   };
 
+  // Remove passing score restriction - all attempts are considered as completed
+  const isPassingScore = true; // Changed from score >= 40
+
   return (
     <View style={styles.container}>
       <View style={styles.contentBox}>
-        <Text style={styles.title}>🎉 Level Complete!</Text>
+        <Text style={styles.title}>
+          {score >= 40 ? "🎉 Level Complete!" : "Level Completed"}
+        </Text>
         
         <View style={styles.scoreContainer}>
           <Text style={styles.scoreText}>Score: {score}</Text>
@@ -42,10 +61,15 @@ const EndScreen = ({ score, timeTaken, resetGame }) => {
           <Text style={styles.timeText}>Time: {timeTaken} seconds</Text>
         </View>
         
+        {/* Removed the message about needing 40 points */}
+        
         <View style={styles.buttonContainer}>
-          {/* Next Level Button */}
+          {/* Next Level Button - show for all completions */}
           {nextLevel && (
-            <TouchableOpacity style={[styles.button, styles.nextButton]} onPress={() => router.push(nextLevel)}>
+            <TouchableOpacity 
+              style={[styles.button, styles.nextButton]} 
+              onPress={handleNextLevel}
+            >
               <Text style={styles.buttonText}>Next Level</Text>
             </TouchableOpacity>
           )}
@@ -78,9 +102,9 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: windowWidth * 0.04,
     alignItems: "center",
-    width: "55%",          // Changed from 80% to 55%
-    maxWidth: windowWidth * 0.4,  // Changed from 0.8 to 0.4
-    maxHeight: windowHeight * 0.8, // Added max height restriction
+    width: "55%",
+    maxWidth: windowWidth * 0.4,
+    maxHeight: windowHeight * 0.8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.5,
@@ -88,7 +112,7 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   title: {
-    fontSize: windowWidth * 0.025,  // Adjusted from 0.028 to 0.025
+    fontSize: windowWidth * 0.025,
     fontWeight: "bold",
     marginBottom: windowHeight * 0.02,
     color: "#2c3e50",
@@ -104,7 +128,7 @@ const styles = StyleSheet.create({
     marginBottom: windowHeight * 0.02,
   },
   scoreText: {
-    fontSize: windowWidth * 0.022,  // Adjusted from 0.024 to 0.022
+    fontSize: windowWidth * 0.022,
     fontWeight: "bold",
     marginBottom: windowHeight * 0.01,
     color: "#2c3e50",
@@ -120,12 +144,19 @@ const styles = StyleSheet.create({
     padding: windowWidth * 0.02,
     width: "90%",
     alignItems: "center",
-    marginBottom: windowHeight * 0.01,  // Reduced from 0.025 to 0.01
-    maxHeight: windowHeight * 0.1,      // Added max height restriction
+    marginBottom: windowHeight * 0.01,
+    maxHeight: windowHeight * 0.1,
   },
   timeText: {
     fontSize: windowWidth * 0.018,
     color: "#2c3e50",
+    fontFamily: "Montserrat_Regular",
+  },
+  message: {
+    fontSize: windowWidth * 0.016,
+    color: "#e74c3c",
+    textAlign: "center",
+    marginBottom: windowHeight * 0.02,
     fontFamily: "Montserrat_Regular",
   },
   buttonContainer: {

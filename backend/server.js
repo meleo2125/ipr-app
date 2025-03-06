@@ -67,6 +67,11 @@ const JWT_SECRET = "your-secret-key"; // Change this to a secure random string i
 // Store OTPs temporarily (in production, use a database or Redis)
 const otpStore = {};
 
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // Generate OTP endpoint
 app.post("/api/generate-otp", async (req, res) => {
   try {
@@ -353,9 +358,52 @@ app.post("/api/update-password", async (req, res) => {
   }
 });
 
+// Get user completed levels with scores
+app.get("/api/user-levels", auth, async (req, res) => {
+  try {
+    const { email, chapter } = req.query;
+
+    // Check if email is provided
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+    if (!chapter) {
+      return res.status(400).json({ message: "Chapter is required" });
+    }
+
+    // Find the user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Get completed levels with scores for the requested chapter
+    const completedLevelsData = user.levels
+      .filter((level) => level.chapter === chapter)
+      .map((level) => ({
+        levelNumber: level.levelNumber,
+        score: level.score || 0
+      }));
+
+    // Extract just the level numbers for backward compatibility
+    const completedLevels = completedLevelsData.map(level => level.levelNumber);
+
+    res.json({
+      completedLevels,
+      completedLevelsData,
+      message: `User levels for chapter '${chapter}' retrieved successfully`,
+    });
+  } catch (error) {
+    console.error("Error retrieving user levels:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 app.post("/api/save-level", async (req, res) => {
   try {
-    const { email, chapter, levelNumber, score, timeTaken } = req.body;
+    const { email, chapter, levelNumber, score, timeTaken, completed } =
+      req.body;
 
     // Find the user
     const user = await User.findOne({ email });
@@ -390,6 +438,7 @@ app.post("/api/save-level", async (req, res) => {
 
     res.status(200).json({
       message: "Level data saved successfully",
+      completed: completed || false,
       success: true,
     });
   } catch (error) {
