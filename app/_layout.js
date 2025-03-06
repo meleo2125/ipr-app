@@ -77,6 +77,27 @@ function ProtectedStack() {
 
       <Stack.Screen name="home/chapters/patent/level1" />
       <Stack.Screen name="home/chapters/patent/level2" />
+      <Stack.Screen name="home/chapters/patent/level3" />
+      <Stack.Screen name="home/chapters/patent/level4" />
+      <Stack.Screen name="home/chapters/patent/level5" />
+
+      <Stack.Screen name="home/chapters/design/level1" />
+      <Stack.Screen name="home/chapters/design/level2" />
+      <Stack.Screen name="home/chapters/design/level3" />
+      <Stack.Screen name="home/chapters/design/level4" />
+      <Stack.Screen name="home/chapters/design/level5" />
+
+      <Stack.Screen name="home/chapters/trademark/level1" />
+      <Stack.Screen name="home/chapters/trademark/level2" />
+      <Stack.Screen name="home/chapters/trademark/level3" />
+      <Stack.Screen name="home/chapters/trademark/level4" />
+      <Stack.Screen name="home/chapters/trademark/level5" />
+
+      <Stack.Screen name="home/chapters/copyrights/level1" />
+      <Stack.Screen name="home/chapters/copyrights/level2" />
+      <Stack.Screen name="home/chapters/copyrights/level3" />
+      <Stack.Screen name="home/chapters/copyrights/level4" />
+      <Stack.Screen name="home/chapters/copyrights/level5" />
     </Stack>
   );
 }
