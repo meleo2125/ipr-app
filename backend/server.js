@@ -382,11 +382,14 @@ app.get("/api/user-levels", auth, async (req, res) => {
       .filter((level) => level.chapter === chapter)
       .map((level) => ({
         levelNumber: level.levelNumber,
-        score: level.score || 0
+        score: level.score || 0,
+        completedAt: level.completedAt,
       }));
 
     // Extract just the level numbers for backward compatibility
-    const completedLevels = completedLevelsData.map(level => level.levelNumber);
+    const completedLevels = completedLevelsData.map(
+      (level) => level.levelNumber
+    );
 
     res.json({
       completedLevels,
@@ -398,7 +401,6 @@ app.get("/api/user-levels", auth, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 app.post("/api/save-level", async (req, res) => {
   try {

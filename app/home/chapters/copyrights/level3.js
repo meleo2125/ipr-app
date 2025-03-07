@@ -9,6 +9,7 @@ import {
   Animated,
   Dimensions,
   Image,
+  PanResponder,
 } from "react-native";
 import EndScreen from "../../../../components/EndScreen";
 import { useAuth } from "../../../../context/AuthContext";
@@ -21,6 +22,7 @@ const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
 const baseUnit = Math.min(windowWidth, windowHeight) / 100;
 
 const Level3Screen = () => {
+  const panResponders = useRef([]).current;
   const [step, setStep] = useState(0);
   const [isGameActive, setIsGameActive] = useState(false);
   const [gameStage, setGameStage] = useState(0); // 0 = document collection, 1 = fee selection
@@ -35,13 +37,21 @@ const Level3Screen = () => {
 
   // Animation values
   const narratorYPosition = useRef(new Animated.Value(0)).current;
+
+  // Improved positioning for documents and mailbox
+  // Left side for documents (40% of screen width)
+  // Right side for mailbox (60% of screen width)
   const documentPositions = useRef([
-    new Animated.ValueXY({ x: windowWidth * 0.1, y: windowHeight * 0.3 }),
-    new Animated.ValueXY({ x: windowWidth * 0.1, y: windowHeight * 0.5 }),
-    new Animated.ValueXY({ x: windowWidth * 0.3, y: windowHeight * 0.3 }),
-    new Animated.ValueXY({ x: windowWidth * 0.3, y: windowHeight * 0.5 }),
+    new Animated.ValueXY({ x: windowWidth * 0.05, y: windowHeight * 0.25 }),
+    new Animated.ValueXY({ x: windowWidth * 0.05, y: windowHeight * 0.5 }),
+    new Animated.ValueXY({ x: windowWidth * 0.25, y: windowHeight * 0.25 }),
+    new Animated.ValueXY({ x: windowWidth * 0.25, y: windowHeight * 0.5 }),
   ]).current;
-  const mailboxPosition = useRef(new Animated.ValueXY({ x: windowWidth * 0.7, y: windowHeight * 0.4 })).current;
+
+  // Position mailbox on the right side of the screen
+  const mailboxPosition = useRef(
+    new Animated.ValueXY({ x: windowWidth * 0.6, y: windowHeight * 0.35 })
+  ).current;
   const mailboxScale = useRef(new Animated.Value(1)).current;
 
   // Setup narrator breathing/floating animation
@@ -84,6 +94,31 @@ const Level3Screen = () => {
       useNativeDriver: true,
     }).start();
   }, [step, isGameActive, gameStage]);
+
+  // Initialize pan responders
+  useEffect(() => {
+    // Create pan responders only once when component mounts
+    documents.forEach((doc, index) => {
+      panResponders[index] = PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderGrant: () => {
+          documentPositions[index].setOffset({
+            x: documentPositions[index].x._value,
+            y: documentPositions[index].y._value,
+          });
+          documentPositions[index].setValue({ x: 0, y: 0 });
+        },
+        onPanResponderMove: (event, gesture) => {
+          onDragDocument(index, gesture);
+        },
+        onPanResponderRelease: () => {
+          documentPositions[index].flattenOffset();
+          onReleaseDocument(index);
+        },
+      });
+    });
+  }, []);
 
   // Narrator dialogues for the submission process
   const dialogues = [
@@ -167,35 +202,34 @@ const Level3Screen = () => {
       { useNativeDriver: false }
     )(null, gesture);
   };
-
   const onReleaseDocument = (index) => {
     // Check if document is over the mailbox
     const docX = documentPositions[index].x._value + windowWidth * 0.1;
     const docY = documentPositions[index].y._value + windowHeight * 0.1;
-    
+  
     const mailboxX = mailboxPosition.x._value;
     const mailboxY = mailboxPosition.y._value;
     const mailboxWidth = windowWidth * 0.25;
     const mailboxHeight = windowHeight * 0.3;
-    
+  
     if (
-      docX > mailboxX && 
+      docX > mailboxX &&
       docX < mailboxX + mailboxWidth &&
-      docY > mailboxY && 
+      docY > mailboxY &&
       docY < mailboxY + mailboxHeight
     ) {
       // Document dropped in mailbox
       if (documents[index].required) {
         // Correct document
-        setScore(prevScore => prevScore + 10);
+        setScore((prevScore) => prevScore + 10);
         showFeedbackMessage("Correct document! +10 points");
-        
+  
         // Animate document into mailbox and hide it
         Animated.parallel([
           Animated.timing(documentPositions[index], {
-            toValue: { 
-              x: mailboxX + mailboxWidth/2 - windowWidth * 0.1, 
-              y: mailboxY + mailboxHeight/2 - windowHeight * 0.1 
+            toValue: {
+              x: mailboxX + mailboxWidth / 2 - windowWidth * 0.1,
+              y: mailboxY + mailboxHeight / 2 - windowHeight * 0.1,
             },
             duration: 300,
             useNativeDriver: false,
@@ -213,22 +247,25 @@ const Level3Screen = () => {
             }),
           ]),
         ]).start(() => {
-          // Update document positions
-          const newPositions = [...documentPositions];
-          newPositions[index] = new Animated.ValueXY({ x: -1000, y: -1000 }); // Move off-screen
+          // Move document off-screen
+          documentPositions[index].setValue({ x: -1000, y: -1000 });
           
           // Check if all required documents are submitted
-          const allRequiredSubmitted = documents
+          const submittedCount = documents
             .filter(doc => doc.required)
-            .every((_, docIndex) => {
-              // Check if this document is already in the mailbox (off-screen)
-              return docIndex === index || 
-                (newPositions[docIndex].x._value === -1000 && 
-                 newPositions[docIndex].y._value === -1000);
-            });
+            .reduce((count, doc, docIndex) => {
+              // Check if this document's position is off-screen
+              const isSubmitted = 
+                documentPositions[docIndex].x._value === -1000 &&
+                documentPositions[docIndex].y._value === -1000;
+              return isSubmitted ? count + 1 : count;
+            }, 0);
+            
+          // Count how many required documents we have total
+          const requiredCount = documents.filter(doc => doc.required).length;
           
-          if (allRequiredSubmitted) {
-            // Move to fee selection stage after a short delay
+          // If all required documents are submitted, move to fee selection
+          if (submittedCount === requiredCount) {
             setTimeout(() => {
               setGameStage(1);
             }, 1000);
@@ -236,49 +273,40 @@ const Level3Screen = () => {
         });
       } else {
         // Incorrect document
-        setScore(prevScore => Math.max(0, prevScore - 5));
+        setScore((prevScore) => Math.max(0, prevScore - 5));
         showFeedbackMessage("That document is not needed! -5 points");
-        
-        // Return document to original position
-        Animated.spring(documentPositions[index], {
-          toValue: { 
-            x: documents[index].id === "application" ? windowWidth * 0.1 : 
-               documents[index].id === "workCopy" ? windowWidth * 0.1 : 
-               documents[index].id === "idProof" ? windowWidth * 0.3 : 
-               windowWidth * 0.3,
-            y: documents[index].id === "application" ? windowHeight * 0.3 : 
-               documents[index].id === "workCopy" ? windowHeight * 0.5 : 
-               documents[index].id === "idProof" ? windowHeight * 0.3 : 
-               windowHeight * 0.5,
-          },
-          useNativeDriver: false,
-        }).start();
+  
+        // Return document to original position with adaptive positioning
+        resetDocumentPosition(index);
       }
     } else {
-      // Return document to original position
-      Animated.spring(documentPositions[index], {
-        toValue: { 
-          x: documents[index].id === "application" ? windowWidth * 0.1 : 
-             documents[index].id === "workCopy" ? windowWidth * 0.1 : 
-             documents[index].id === "idProof" ? windowWidth * 0.3 : 
-             windowWidth * 0.3,
-          y: documents[index].id === "application" ? windowHeight * 0.3 : 
-             documents[index].id === "workCopy" ? windowHeight * 0.5 : 
-             documents[index].id === "idProof" ? windowHeight * 0.3 : 
-             windowHeight * 0.5,
-        },
-        useNativeDriver: false,
-      }).start();
+      // Return document to original position with adaptive positioning
+      resetDocumentPosition(index);
     }
+  };
+
+  // Helper function to reset document to original position based on index
+  const resetDocumentPosition = (index) => {
+    const positions = [
+      { x: windowWidth * 0.05, y: windowHeight * 0.25 },
+      { x: windowWidth * 0.05, y: windowHeight * 0.5 },
+      { x: windowWidth * 0.25, y: windowHeight * 0.25 },
+      { x: windowWidth * 0.25, y: windowHeight * 0.5 },
+    ];
+
+    Animated.spring(documentPositions[index], {
+      toValue: positions[index],
+      useNativeDriver: false,
+    }).start();
   };
 
   // Fee selection handler
   const selectFee = (option) => {
     if (option.correct) {
       // Correct fee
-      setScore(prevScore => prevScore + 20);
+      setScore((prevScore) => prevScore + 20);
       showFeedbackMessage("Correct fee selection! +20 points");
-      
+
       // End the game after a delay
       setTimeout(() => {
         const endTime = Date.now();
@@ -289,7 +317,7 @@ const Level3Screen = () => {
       }, 1500);
     } else {
       // Incorrect fee
-      setScore(prevScore => Math.max(0, prevScore - 10));
+      setScore((prevScore) => Math.max(0, prevScore - 10));
       showFeedbackMessage("Incorrect fee! -10 points");
     }
   };
@@ -364,13 +392,16 @@ const Level3Screen = () => {
     setScore(0);
     setTimeTaken(0);
     setShowEndScreen(false);
-    
-    // Reset document positions
+
+    // Reset document positions with the updated positions
     documentPositions.forEach((pos, index) => {
-      pos.setValue({ 
-        x: index < 2 ? windowWidth * 0.1 : windowWidth * 0.3, 
-        y: index % 2 === 0 ? windowHeight * 0.3 : windowHeight * 0.5 
-      });
+      const positions = [
+        { x: windowWidth * 0.05, y: windowHeight * 0.25 },
+        { x: windowWidth * 0.05, y: windowHeight * 0.5 },
+        { x: windowWidth * 0.25, y: windowHeight * 0.25 },
+        { x: windowWidth * 0.25, y: windowHeight * 0.5 },
+      ];
+      pos.setValue(positions[index]);
     });
   };
 
@@ -388,7 +419,7 @@ const Level3Screen = () => {
             ],
           },
         ]}
-        {...createPanResponder(index).panHandlers}
+        {...(panResponders[index] ? panResponders[index].panHandlers : {})}
       >
         <Image source={doc.image} style={styles.documentImage} />
         <Text style={styles.documentText}>{doc.name}</Text>
@@ -396,36 +427,16 @@ const Level3Screen = () => {
     ));
   };
 
-  // Create pan responder for document dragging
-  const createPanResponder = (index) => {
-    return {
-      onStartShouldSetResponder: () => true,
-      onMoveShouldSetResponder: () => true,
-      onResponderGrant: () => {
-        documentPositions[index].setOffset({
-          x: documentPositions[index].x._value,
-          y: documentPositions[index].y._value,
-        });
-        documentPositions[index].setValue({ x: 0, y: 0 });
-      },
-      onResponderMove: (event, gesture) => {
-        onDragDocument(index, gesture);
-      },
-      onResponderRelease: () => {
-        documentPositions[index].flattenOffset();
-        onReleaseDocument(index);
-      },
-    };
-  };
-
   // Render fee selection UI
   const renderFeeSelection = () => {
     return (
       <View style={styles.feeContainer}>
-        <Text style={styles.feeTitle}>Select the Correct Fee for a Musical Composition</Text>
-        
+        <Text style={styles.feeTitle}>
+          Select the Correct Fee for a Musical Composition
+        </Text>
+
         <View style={styles.feeOptionsContainer}>
-          {feeOptions.map(option => (
+          {feeOptions.map((option) => (
             <TouchableOpacity
               key={option.id}
               style={styles.feeOption}
@@ -436,13 +447,73 @@ const Level3Screen = () => {
             </TouchableOpacity>
           ))}
         </View>
-        
+
         <Text style={styles.feeInstructions}>
-          Choose the appropriate fee for registering a musical composition copyright
+          Choose the appropriate fee for registering a musical composition
+          copyright
         </Text>
       </View>
     );
   };
+
+  // Render the game screen layout with improved split view
+  const renderGameScreen = () => (
+    <View style={styles.gameContainer}>
+      <Text style={styles.title}>
+        {gameStage === 0 ? "Submit Your Documents" : "Pay Registration Fee"}
+      </Text>
+      <Text style={styles.subtitle}>
+        {gameStage === 0
+          ? "Drag the required documents into the mailbox"
+          : "Select the correct fee amount for your copyright application"}
+      </Text>
+
+      {/* Game content based on stage */}
+      {gameStage === 0 ? (
+        <View style={styles.splitContainer}>
+          <View style={styles.documentsArea}>{renderDraggableDocuments()}</View>
+
+          <View style={styles.mailboxArea}>
+            <Animated.View
+              style={[
+                styles.mailbox,
+                {
+                  transform: [{ scale: mailboxScale }],
+                },
+              ]}
+            >
+              <Image
+                source={require("../../../../assets/images/mailbox.png")}
+                style={styles.mailboxImage}
+              />
+              <Text style={styles.mailboxText}>Drop Documents Here</Text>
+            </Animated.View>
+          </View>
+        </View>
+      ) : (
+        renderFeeSelection()
+      )}
+
+      {/* Feedback Message */}
+      {showFeedback && (
+        <View style={styles.feedbackContainer}>
+          <Text style={styles.feedbackText}>{feedbackMessage}</Text>
+        </View>
+      )}
+
+      <View style={styles.scoreDisplay}>
+        <Text style={styles.currentScore}>Score: {score}</Text>
+      </View>
+
+      {gameStage === 0 && (
+        <View style={styles.instructionBox}>
+          <Text style={styles.instructionText}>
+            Submit only the required documents for copyright registration
+          </Text>
+        </View>
+      )}
+    </View>
+  );
 
   return (
     <ImageBackground
@@ -460,63 +531,7 @@ const Level3Screen = () => {
             resetGame={resetGame}
           />
         ) : isGameActive ? (
-          /* Game Screen */
-          <View style={styles.gameContainer}>
-            <Text style={styles.title}>
-              {gameStage === 0 ? "Submit Your Documents" : "Pay Registration Fee"}
-            </Text>
-            <Text style={styles.subtitle}>
-              {gameStage === 0 
-                ? "Drag the required documents into the mailbox" 
-                : "Select the correct fee amount for your copyright application"}
-            </Text>
-
-            {/* Document submission stage */}
-            {gameStage === 0 && (
-              <>
-                {renderDraggableDocuments()}
-                
-                <Animated.View
-                  style={[
-                    styles.mailbox,
-                    {
-                      transform: [
-                        { translateX: mailboxPosition.x },
-                        { translateY: mailboxPosition.y },
-                        { scale: mailboxScale },
-                      ],
-                    },
-                  ]}
-                >
-                  <Image 
-                    source={require("../../../../assets/images/mailbox.png")} 
-                    style={styles.mailboxImage} 
-                  />
-                  <Text style={styles.mailboxText}>Drop Documents Here</Text>
-                </Animated.View>
-                
-                <View style={styles.instructionBox}>
-                  <Text style={styles.instructionText}>
-                    Submit only the required documents for copyright registration
-                  </Text>
-                </View>
-              </>
-            )}
-
-            {/* Fee selection stage */}
-            {gameStage === 1 && renderFeeSelection()}
-
-            {/* Feedback Message */}
-            {showFeedback && (
-              <View style={styles.feedbackContainer}>
-                <Text style={styles.feedbackText}>{feedbackMessage}</Text>
-              </View>
-            )}
-
-            <View style={styles.scoreDisplay}>
-              <Text style={styles.currentScore}>Score: {score}</Text>
-            </View>
-          </View>
+          renderGameScreen()
         ) : (
           /* Introduction with Narrator */
           <View style={styles.dialogueContainer}>
@@ -624,6 +639,21 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingTop: baseUnit * 3,
   },
+  // New split container for documents area and mailbox area
+  splitContainer: {
+    flex: 1,
+    flexDirection: "row",
+    width: "100%",
+  },
+  documentsArea: {
+    flex: 1, // Takes 50% of the splitContainer width
+    position: "relative",
+  },
+  mailboxArea: {
+    flex: 1, // Takes 50% of the splitContainer width
+    justifyContent: "center",
+    alignItems: "center",
+  },
   title: {
     fontSize: baseUnit * 3.5,
     fontWeight: "bold",
@@ -643,8 +673,8 @@ const styles = StyleSheet.create({
   },
   document: {
     position: "absolute",
-    width: windowWidth * 0.2,
-    height: windowHeight * 0.2,
+    width: windowWidth * 0.15, // Slightly smaller to fit better in the split view
+    height: windowHeight * 0.15,
     backgroundColor: "#ffffff",
     borderRadius: baseUnit * 1.5,
     padding: baseUnit * 1,
@@ -662,15 +692,14 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   documentText: {
-    fontSize: baseUnit * 2.2,
+    fontSize: baseUnit * 1.8, // Slightly smaller for better fit
     color: "#2c3e50",
     textAlign: "center",
-    marginTop: baseUnit * 1,
+    marginTop: baseUnit * 0.5,
     fontFamily: "Montserrat_Regular",
     userSelect: "none",
   },
   mailbox: {
-    position: "absolute",
     width: windowWidth * 0.25,
     height: windowHeight * 0.3,
     alignItems: "center",
