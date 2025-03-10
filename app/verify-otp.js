@@ -59,7 +59,9 @@ export default function VerifyOTP() {
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   const handleVerifyOTP = async () => {
@@ -69,7 +71,7 @@ export default function VerifyOTP() {
     }
 
     const result = await verifyOTP(email, otp, userData);
-    
+
     if (result.success) {
       showCustomAlert("Email verified successfully!");
       setTimeout(() => {
@@ -82,7 +84,7 @@ export default function VerifyOTP() {
 
   const handleResendOTP = async () => {
     const result = await requestOTP(email);
-    
+
     if (result.success) {
       // Reset timer
       setTimeLeft(900); // 15 minutes
@@ -162,10 +164,7 @@ export default function VerifyOTP() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
-          style={styles.backLink}
-          onPress={() => router.back()}
-        >
+        <TouchableOpacity style={styles.backLink} onPress={() => router.back()}>
           <Text style={styles.backLinkText}>Back to Register</Text>
         </TouchableOpacity>
       </View>

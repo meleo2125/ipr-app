@@ -27,11 +27,7 @@ const transporter = nodemailer.createTransport({
 // MongoDB Connection
 mongoose
   .connect(
-    "mongodb+srv://root:root@ipr.hanid.mongodb.net/?retryWrites=true&w=majority&appName=ipr",
-    {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    }
+    "mongodb+srv://root:root@ipr.hanid.mongodb.net/?retryWrites=true&w=majority&appName=ipr"
   )
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));

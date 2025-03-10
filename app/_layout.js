@@ -65,22 +65,22 @@ function ProtectedStack() {
       <Stack.Screen name="forgot-password" />
       <Stack.Screen name="verify-otp" />
 
-      <Stack.Screen name="home" />
+      <Stack.Screen name="home/index" />
       <Stack.Screen name="home/leaderboard" />
       <Stack.Screen name="home/tips" />
 
-      <Stack.Screen name="home/chapters" />
-      <Stack.Screen name="home/chapters/patent" />
-      <Stack.Screen name="home/chapters/design" />
-      <Stack.Screen name="home/chapters/trademark" />
-      <Stack.Screen name="home/chapters/copyrights" />
+      <Stack.Screen name="home/chapters/index" />
+      <Stack.Screen name="home/chapters/patent/index" />
+      <Stack.Screen name="home/chapters/design/index" />
+      <Stack.Screen name="home/chapters/trademark/index" />
+      <Stack.Screen name="home/chapters/copyrights/index" />
 
       <Stack.Screen name="home/chapters/patent/level1" />
       <Stack.Screen name="home/chapters/patent/level2" />
       <Stack.Screen name="home/chapters/patent/level3" />
       <Stack.Screen name="home/chapters/patent/level4" />
       <Stack.Screen name="home/chapters/patent/level5" />
-
+{/* 
       <Stack.Screen name="home/chapters/design/level1" />
       <Stack.Screen name="home/chapters/design/level2" />
       <Stack.Screen name="home/chapters/design/level3" />
@@ -91,13 +91,13 @@ function ProtectedStack() {
       <Stack.Screen name="home/chapters/trademark/level2" />
       <Stack.Screen name="home/chapters/trademark/level3" />
       <Stack.Screen name="home/chapters/trademark/level4" />
-      <Stack.Screen name="home/chapters/trademark/level5" />
+      <Stack.Screen name="home/chapters/trademark/level5" /> */}
 
       <Stack.Screen name="home/chapters/copyrights/level1" />
       <Stack.Screen name="home/chapters/copyrights/level2" />
       <Stack.Screen name="home/chapters/copyrights/level3" />
-      <Stack.Screen name="home/chapters/copyrights/level4" />
-      <Stack.Screen name="home/chapters/copyrights/level5" />
+      {/* <Stack.Screen name="home/chapters/copyrights/level4" />
+      <Stack.Screen name="home/chapters/copyrights/level5" /> */}
     </Stack>
   );
 }
