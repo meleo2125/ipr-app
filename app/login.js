@@ -13,6 +13,7 @@ import {
   Animated,
   StatusBar,
   useWindowDimensions,
+  ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as ScreenOrientation from "expo-screen-orientation";
@@ -38,25 +39,13 @@ export default function Login() {
   const isMobileScreen = width < 480;
   const isTabletScreen = width >= 480 && width < 1024;
   const isLargeScreen = width >= 1024;
+  const isLowHeight = height < 500; // For handling very low height screens
 
   const router = useRouter();
   const { login, userToken } = useAuth();
 
   // Set screen orientation based on device type
   useEffect(() => {
-    async function setOrientation() {
-      // Only lock to landscape on large screens
-      if (isLargeScreen) {
-        await ScreenOrientation.lockAsync(
-          ScreenOrientation.OrientationLock.LANDSCAPE
-        );
-      } else {
-        // Allow any orientation on smaller screens
-        await ScreenOrientation.unlockAsync();
-      }
-    }
-    setOrientation();
-
     // Check if already logged in
     if (userToken) {
       router.replace("/home");
@@ -111,6 +100,7 @@ export default function Login() {
         styles.formContainer,
         isMobileScreen && styles.formContainerMobile,
         isTabletScreen && styles.formContainerTablet,
+        isLowHeight && styles.formContainerLowHeight,
         { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
       ]}
     >
@@ -119,12 +109,17 @@ export default function Login() {
           style={[
             styles.welcomeText,
             isMobileScreen && styles.welcomeTextMobile,
+            isLowHeight && styles.welcomeTextLowHeight,
           ]}
         >
           Welcome Back
         </Text>
         <Text
-          style={[styles.subtitle, isMobileScreen && styles.subtitleMobile]}
+          style={[
+            styles.subtitle,
+            isMobileScreen && styles.subtitleMobile,
+            isLowHeight && styles.subtitleLowHeight,
+          ]}
         >
           Sign in to continue to your account
         </Text>
@@ -134,6 +129,7 @@ export default function Login() {
         style={[
           styles.inputContainer,
           isMobileScreen && styles.inputContainerMobile,
+          isLowHeight && styles.inputContainerLowHeight,
         ]}
       >
         <Text style={styles.label}>Email Address</Text>
@@ -160,6 +156,7 @@ export default function Login() {
         style={[
           styles.inputContainer,
           isMobileScreen && styles.inputContainerMobile,
+          isLowHeight && styles.inputContainerLowHeight,
         ]}
       >
         <Text style={styles.label}>Password</Text>
@@ -198,7 +195,7 @@ export default function Login() {
       </View>
 
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.button, isLowHeight && styles.buttonLowHeight]}
         onPress={handleLogin}
         disabled={isLoading}
         activeOpacity={0.8}
@@ -228,6 +225,7 @@ export default function Login() {
         style={[
           styles.dividerContainer,
           isMobileScreen && styles.dividerContainerMobile,
+          isLowHeight && styles.dividerContainerLowHeight,
         ]}
       >
         <View style={styles.divider} />
@@ -262,22 +260,30 @@ export default function Login() {
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={styles.mobileContainer}
           >
-            <Animated.View
-              style={[
-                styles.mobileLogoContainer,
-                { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
-              ]}
+            <ScrollView
+              contentContainerStyle={styles.scrollViewContent}
+              showsVerticalScrollIndicator={false}
             >
-              <Image
-                source={require("../assets/images/logo.png")}
-                style={styles.logoMobile}
-                resizeMode="contain"
-              />
-              <View style={styles.taglineContainer}>
-                <Text style={styles.tagline}>Learn. Protect. Innovate.</Text>
-              </View>
-            </Animated.View>
-            {renderLoginForm()}
+              <Animated.View
+                style={[
+                  styles.mobileLogoContainer,
+                  { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+                ]}
+              >
+                <Image
+                  source={require("../assets/images/logo.png")}
+                  style={[
+                    styles.logoMobile,
+                    isLowHeight && styles.logoMobileLowHeight,
+                  ]}
+                  resizeMode="contain"
+                />
+                <View style={styles.taglineContainer}>
+                  <Text style={styles.tagline}>Learn. Protect. Innovate.</Text>
+                </View>
+              </Animated.View>
+              {renderLoginForm()}
+            </ScrollView>
           </KeyboardAvoidingView>
         </LinearGradient>
       </SafeAreaView>
@@ -298,34 +304,39 @@ export default function Login() {
           colors={["#f5f5f5", "#e8eef7"]}
           style={styles.gradientBackground}
         >
-          <View style={styles.tabletContainer}>
-            <Animated.View
-              style={[
-                styles.tabletLogoContainer,
-                { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
-              ]}
-            >
-              <Image
-                source={require("../assets/images/logo.png")}
-                style={styles.logoTablet}
-                resizeMode="contain"
-              />
-              <Text style={styles.tabletTitle}>
-                Learn Intellectual Property Rights
-              </Text>
-              <View style={styles.tabletTaglineContainer}>
-                <Text style={styles.tabletTagline}>
-                  Protecting your ideas in the digital age
+          <ScrollView
+            contentContainerStyle={styles.scrollViewContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.tabletContainer}>
+              <Animated.View
+                style={[
+                  styles.tabletLogoContainer,
+                  { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+                ]}
+              >
+                <Image
+                  source={require("../assets/images/logo.png")}
+                  style={styles.logoTablet}
+                  resizeMode="contain"
+                />
+                <Text style={styles.tabletTitle}>
+                  Learn Intellectual Property Rights
                 </Text>
-              </View>
-            </Animated.View>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : "height"}
-              style={styles.tabletFormSection}
-            >
-              {renderLoginForm()}
-            </KeyboardAvoidingView>
-          </View>
+                <View style={styles.tabletTaglineContainer}>
+                  <Text style={styles.tabletTagline}>
+                    Protecting your ideas in the digital age
+                  </Text>
+                </View>
+              </Animated.View>
+              <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={styles.tabletFormSection}
+              >
+                {renderLoginForm()}
+              </KeyboardAvoidingView>
+            </View>
+          </ScrollView>
         </LinearGradient>
       </SafeAreaView>
     );
@@ -340,60 +351,71 @@ export default function Login() {
         message={alertMessage}
         onClose={() => setShowAlert(false)}
       />
-      <View style={styles.largeScreenContainer}>
-        {/* Left half - Image Section */}
-        <View style={styles.imageContainer}>
-          <Image
-            source={require("../assets/images/login.png")}
-            style={styles.image}
-            resizeMode="cover"
-          />
+      <ScrollView
+        contentContainerStyle={styles.largeScreenScrollContent}
+        horizontal={false}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.largeScreenContainer}>
+          {/* Left half - Image Section */}
+          <View style={styles.imageContainer}>
+            <Image
+              source={require("../assets/images/login.png")}
+              style={styles.image}
+              resizeMode="cover"
+            />
 
-          <LinearGradient
-            colors={["rgba(74, 109, 167, 0.85)", "rgba(58, 83, 128, 0.95)"]}
-            style={styles.overlayContainer}
-          >
-            <Animated.View
-              style={{
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-                alignItems: "center",
-              }}
+            <LinearGradient
+              colors={["rgba(74, 109, 167, 0.85)", "rgba(58, 83, 128, 0.95)"]}
+              style={styles.overlayContainer}
             >
-              <Image
-                source={require("../assets/images/logo.png")}
-                style={styles.logo}
-                resizeMode="contain"
-              />
-              <Text style={styles.overlaySubtitle}>
-                Learn Intellectual Property Rights with fun and ease
-              </Text>
-              <View style={styles.featureContainer}>
-                <View style={styles.featureItem}>
-                  <Ionicons name="shield-checkmark" size={24} color="white" />
-                  <Text style={styles.featureText}>Protect Your Ideas</Text>
+              <Animated.View
+                style={{
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                  alignItems: "center",
+                }}
+              >
+                <Image
+                  source={require("../assets/images/logo.png")}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
+                <Text style={styles.overlaySubtitle}>
+                  Learn Intellectual Property Rights with fun and ease
+                </Text>
+                <View style={styles.featureContainer}>
+                  <View style={styles.featureItem}>
+                    <Ionicons name="shield-checkmark" size={24} color="white" />
+                    <Text style={styles.featureText}>Protect Your Ideas</Text>
+                  </View>
+                  <View style={styles.featureItem}>
+                    <Ionicons name="school" size={24} color="white" />
+                    <Text style={styles.featureText}>Interactive Learning</Text>
+                  </View>
+                  <View style={styles.featureItem}>
+                    <Ionicons name="trophy" size={24} color="white" />
+                    <Text style={styles.featureText}>Earn Points</Text>
+                  </View>
                 </View>
-                <View style={styles.featureItem}>
-                  <Ionicons name="school" size={24} color="white" />
-                  <Text style={styles.featureText}>Interactive Learning</Text>
-                </View>
-                <View style={styles.featureItem}>
-                  <Ionicons name="trophy" size={24} color="white" />
-                  <Text style={styles.featureText}>Earn Certificates</Text>
-                </View>
-              </View>
-            </Animated.View>
+              </Animated.View>
+            </LinearGradient>
+          </View>
+
+          {/* Right half - Login Form */}
+          <LinearGradient
+            colors={["#f5f5f5", "#e8eef7"]}
+            style={styles.formSection}
+          >
+            <ScrollView
+              contentContainerStyle={styles.formScrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {renderLoginForm()}
+            </ScrollView>
           </LinearGradient>
         </View>
-
-        {/* Right half - Login Form */}
-        <LinearGradient
-          colors={["#f5f5f5", "#e8eef7"]}
-          style={styles.formSection}
-        >
-          {renderLoginForm()}
-        </LinearGradient>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -406,10 +428,24 @@ const styles = StyleSheet.create({
   gradientBackground: {
     flex: 1,
   },
+  scrollViewContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingVertical: 20,
+  },
   // Large screen layout (two parts)
   largeScreenContainer: {
     flex: 1,
     flexDirection: "row",
+    minHeight: 600,
+  },
+  largeScreenScrollContent: {
+    flexGrow: 1,
+  },
+  formScrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   imageContainer: {
     flex: 1,
@@ -468,6 +504,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
+    minHeight: 600,
   },
   tabletLogoContainer: {
     alignItems: "center",
@@ -521,6 +558,11 @@ const styles = StyleSheet.create({
     height: 80,
     marginBottom: 5,
   },
+  logoMobileLowHeight: {
+    width: 60,
+    height: 60,
+    marginBottom: 2,
+  },
   taglineContainer: {
     backgroundColor: "rgba(74, 109, 167, 0.1)",
     paddingVertical: 6,
@@ -548,6 +590,27 @@ const styles = StyleSheet.create({
   },
   dividerContainerMobile: {
     marginVertical: 16,
+  },
+
+  // Low height styles for landscape mobile
+  formContainerLowHeight: {
+    padding: 15,
+  },
+  welcomeTextLowHeight: {
+    fontSize: 20,
+    marginBottom: 2,
+  },
+  subtitleLowHeight: {
+    fontSize: 12,
+  },
+  inputContainerLowHeight: {
+    marginBottom: 10,
+  },
+  buttonLowHeight: {
+    marginTop: 10,
+  },
+  dividerContainerLowHeight: {
+    marginVertical: 10,
   },
 
   // Common form styles
